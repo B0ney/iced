@@ -408,7 +408,11 @@ where
                     width: offset + handle_width / 2.0,
                     height: style.rail.width,
                 },
-                border: Border::rounded(style.rail.border_radius),
+                border: Border {
+                    color: style.rail.border_color,
+                    width: style.rail.border_width,
+                    radius: style.rail.border_radius,
+                },
                 ..renderer::Quad::default()
             },
             style.rail.colors.0,
@@ -422,7 +426,11 @@ where
                     width: bounds.width - offset - handle_width / 2.0,
                     height: style.rail.width,
                 },
-                border: Border::rounded(style.rail.border_radius),
+                border: Border {
+                    color: style.rail.border_color,
+                    width: style.rail.border_width,
+                    radius: style.rail.border_radius,
+                },
                 ..renderer::Quad::default()
             },
             style.rail.colors.1,
@@ -530,6 +538,10 @@ pub struct Rail {
     pub width: f32,
     /// The border radius of the corners of the rail.
     pub border_radius: border::Radius,
+    /// The border width of the rail.
+    pub border_width: f32,
+    /// The border [`Color`] of the rail.
+    pub border_color: Color,
 }
 
 /// The appearance of the handle of a slider.
@@ -604,6 +616,8 @@ pub fn default(theme: &Theme, status: Status) -> Style {
             colors: (color, palette.secondary.base.color),
             width: 4.0,
             border_radius: 2.0.into(),
+            border_width: 0.0,
+            border_color: Color::TRANSPARENT,
         },
         handle: Handle {
             shape: HandleShape::Circle { radius: 7.0 },
