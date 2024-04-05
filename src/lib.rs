@@ -521,6 +521,10 @@ pub mod window;
 #[cfg(feature = "advanced")]
 pub mod advanced;
 
+#[cfg(all(feature = "dynamic-linking", not(feature = "ignore-dynamic-linking")))]
+#[allow(unused_imports)]
+use iced_dylib;
+
 pub use crate::core::alignment;
 pub use crate::core::animation;
 pub use crate::core::border;

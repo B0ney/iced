@@ -2266,6 +2266,7 @@ dependencies = [
  "iced_core",
  "iced_debug",
  "iced_devtools",
+ "iced_dylib",
  "iced_futures",
  "iced_highlighter",
  "iced_renderer",
@@ -2330,6 +2331,17 @@ dependencies = [
  "iced_program",
  "iced_widget",
  "log",
+]
+
+[[package]]
+name = "iced_dylib"
+version = "0.15.0-dev"
+dependencies = [
+ "iced_core",
+ "iced_futures",
+ "iced_renderer",
+ "iced_widget",
+ "iced_winit",
 ]
 
 [[package]]

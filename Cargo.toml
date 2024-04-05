@@ -87,6 +87,10 @@ linux-theme-detection = ["iced_winit/linux-theme-detection"]
 x11 = ["iced_renderer/x11", "iced_winit/x11"]
 # Enables the Unix Wayland backend
 wayland = ["iced_renderer/wayland", "iced_winit/wayland"]
+# Enables dynamic linking for faster compilation during development
+dynamic-linking = ["dep:iced_dylib"]
+# Enables ignoring the dynamic linking flag; useful for testing with `--all-features`
+ignore-dynamic-linking = []
 
 [dependencies]
 iced_debug.workspace = true
@@ -105,6 +109,9 @@ iced_tester.optional = true
 
 iced_highlighter.workspace = true
 iced_highlighter.optional = true
+
+iced_dylib.workspace = true
+iced_dylib.optional = true
 
 thiserror.workspace = true
 
@@ -145,6 +152,7 @@ members = [
     "core",
     "debug",
     "devtools",
+    "dylib",
     "futures",
     "graphics",
     "highlighter",
@@ -178,6 +186,7 @@ iced_beacon = { version = "0.15.0-dev", path = "beacon" }
 iced_core = { version = "0.15.0-dev", path = "core" }
 iced_debug = { version = "0.15.0-dev", path = "debug" }
 iced_devtools = { version = "0.15.0-dev", path = "devtools" }
+iced_dylib = { version = "0.15.0-dev", path = "dylib" }
 iced_futures = { version = "0.15.0-dev", path = "futures" }
 iced_graphics = { version = "0.15.0-dev", path = "graphics" }
 iced_highlighter = { version = "0.15.0-dev", path = "highlighter" }
