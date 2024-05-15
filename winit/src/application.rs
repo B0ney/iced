@@ -1069,6 +1069,9 @@ pub fn run_command<A, C, E>(
                         state.viewport().scale_factor(),
                     )));
                 }
+                window::Action::ChangeCursorIcon(_, icon) => {
+                    // proxy.send("message");
+                },
             },
             command::Action::System(action) => match action {
                 system::Action::QueryInformation(_tag) => {

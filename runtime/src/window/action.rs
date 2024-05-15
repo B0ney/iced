@@ -105,6 +105,8 @@ pub enum Action<T> {
     /// - **X11:** Has no universal guidelines for icon sizes, so you're at the whims of the WM. That
     ///   said, it's usually in the same ballpark as on Windows.
     ChangeIcon(Id, Icon),
+    /// TODO
+    ChangeCursorIcon(Id, Icon),
     /// Runs the closure with the native window handle of the window with the given [`Id`].
     RunWithHandle(Id, Box<dyn FnOnce(WindowHandle<'_>) -> T + 'static>),
     /// Screenshot the viewport of the window.
@@ -163,6 +165,7 @@ impl<T> Action<T> {
                 id,
                 Box::new(move |screenshot| f(tag(screenshot))),
             ),
+            Self::ChangeCursorIcon(id,icon) => Action::ChangeCursorIcon(id, icon)
         }
     }
 }
@@ -225,6 +228,9 @@ impl<T> fmt::Debug for Action<T> {
                 write!(f, "Action::RunWithHandle({id:?})")
             }
             Self::Screenshot(id, _) => write!(f, "Action::Screenshot({id:?})"),
+            Self::ChangeCursorIcon(id,_icon) => {
+                write!(f, "Action::ChangeCursorIcon({id:?})")
+            }
         }
     }
 }

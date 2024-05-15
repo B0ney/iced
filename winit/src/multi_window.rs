@@ -1243,6 +1243,7 @@ fn run_command<A, C, E>(
                         )));
                     }
                 }
+                window::Action::ChangeCursorIcon(_, _) => todo!(),
             },
             command::Action::System(action) => match action {
                 system::Action::QueryInformation(_tag) => {
