@@ -447,7 +447,7 @@ where
                 },
                 ..renderer::Quad::default()
             },
-            style.handle.background,
+            style.handle.color,
         );
     }
 

@@ -9,8 +9,8 @@ use crate::core::renderer;
 use crate::core::touch;
 use crate::core::widget::tree::{self, Tree};
 use crate::core::{
-    self, Background, Border, Clipboard, Color, Element, Layout, Length,
-    Pixels, Point, Rectangle, Shell, Size, Theme, Widget,
+    self, Border, Clipboard, Color, Element, Layout, Length, Pixels, Point,
+    Rectangle, Shell, Size, Theme, Widget,
 };
 
 use std::ops::RangeInclusive;
@@ -455,7 +455,7 @@ where
                 },
                 ..renderer::Quad::default()
             },
-            style.handle.background,
+            style.handle.color,
         );
     }
 
@@ -553,8 +553,8 @@ pub struct Rail {
 pub struct Handle {
     /// The shape of the handle.
     pub shape: HandleShape,
-    /// The [`Background`] of the handle.
-    pub background: Background,
+    /// The [`Color`] of the handle.
+    pub color: Color,
     /// The border width of the handle.
     pub border_width: f32,
     /// The border [`Color`] of the handle.
@@ -625,7 +625,7 @@ pub fn default(theme: &Theme, status: Status) -> Style {
         },
         handle: Handle {
             shape: HandleShape::Circle { radius: 7.0 },
-            background: Background::Color(color),
+            color,
             border_color: Color::TRANSPARENT,
             border_width: 0.0,
         },
