@@ -400,37 +400,33 @@ where
 
         let rail_y = bounds.y + bounds.height / 2.0;
 
-        if offset > 0.0 {
-            renderer.fill_quad(
-                renderer::Quad {
-                    bounds: Rectangle {
-                        x: bounds.x,
-                        y: rail_y - style.rail.width / 2.0,
-                        width: offset + handle_width / 2.0,
-                        height: style.rail.width,
-                    },
-                    border: style.rail.border,
-                    ..renderer::Quad::default()
+        renderer.fill_quad(
+            renderer::Quad {
+                bounds: Rectangle {
+                    x: bounds.x,
+                    y: rail_y - style.rail.width / 2.0,
+                    width: offset + handle_width / 2.0,
+                    height: style.rail.width,
                 },
-                style.rail.colors.0,
-            );
-        }
+                border: style.rail.border,
+                ..renderer::Quad::default()
+            },
+            style.rail.colors.0,
+        );
 
-        if bounds.width - offset > handle_width {
-            renderer.fill_quad(
-                renderer::Quad {
-                    bounds: Rectangle {
-                        x: bounds.x + offset + handle_width / 2.0,
-                        y: rail_y - style.rail.width / 2.0,
-                        width: bounds.width - offset - handle_width / 2.0,
-                        height: style.rail.width,
-                    },
-                    border: style.rail.border,
-                    ..renderer::Quad::default()
+        renderer.fill_quad(
+            renderer::Quad {
+                bounds: Rectangle {
+                    x: bounds.x + offset + handle_width / 2.0,
+                    y: rail_y - style.rail.width / 2.0,
+                    width: bounds.width - offset - handle_width / 2.0,
+                    height: style.rail.width,
                 },
-                style.rail.colors.1,
-            );
-        }
+                border: style.rail.border,
+                ..renderer::Quad::default()
+            },
+            style.rail.colors.1,
+        );
 
         renderer.fill_quad(
             renderer::Quad {
