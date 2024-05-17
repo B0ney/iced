@@ -410,7 +410,7 @@ where
                         height: style.rail.width,
                     },
                     border: Border {
-                        color: style.rail.border_colors.0,
+                        color: style.rail.border_color,
                         width: style.rail.border_width,
                         radius: style.rail.border_radius,
                     },
@@ -430,7 +430,7 @@ where
                         height: style.rail.width,
                     },
                     border: Border {
-                        color: style.rail.border_colors.1,
+                        color: style.rail.border_color,
                         width: style.rail.border_width,
                         radius: style.rail.border_radius,
                     },
@@ -545,7 +545,7 @@ pub struct Rail {
     /// The border width of the rail.
     pub border_width: f32,
     /// The border [`Color`] of the rail.
-    pub border_colors: (Color, Color),
+    pub border_color: Color,
 }
 
 /// The appearance of the handle of a slider.
@@ -621,7 +621,7 @@ pub fn default(theme: &Theme, status: Status) -> Style {
             width: 4.0,
             border_radius: 2.0.into(),
             border_width: 0.0,
-            border_colors: (Color::TRANSPARENT, Color::TRANSPARENT),
+            border_color: Color::TRANSPARENT,
         },
         handle: Handle {
             shape: HandleShape::Circle { radius: 7.0 },
