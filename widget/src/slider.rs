@@ -400,33 +400,37 @@ where
 
         let rail_y = bounds.y + bounds.height / 2.0;
 
-        renderer.fill_quad(
-            renderer::Quad {
-                bounds: Rectangle {
-                    x: bounds.x,
-                    y: rail_y - style.rail.width / 2.0,
-                    width: offset + handle_width / 2.0,
-                    height: style.rail.width,
+        if offset > 0.0 {
+            renderer.fill_quad(
+                renderer::Quad {
+                    bounds: Rectangle {
+                        x: bounds.x,
+                        y: rail_y - style.rail.width / 2.0,
+                        width: offset + handle_width / 2.0,
+                        height: style.rail.width,
+                    },
+                    border: style.rail.border,
+                    ..renderer::Quad::default()
                 },
-                border: style.rail.border,
-                ..renderer::Quad::default()
-            },
-            style.rail.colors.0,
-        );
+                style.rail.colors.0,
+            );
+        }
 
-        renderer.fill_quad(
-            renderer::Quad {
-                bounds: Rectangle {
-                    x: bounds.x + offset + handle_width / 2.0,
-                    y: rail_y - style.rail.width / 2.0,
-                    width: bounds.width - offset - handle_width / 2.0,
-                    height: style.rail.width,
+        if bounds.width - offset > handle_width {
+            renderer.fill_quad(
+                renderer::Quad {
+                    bounds: Rectangle {
+                        x: bounds.x + offset + handle_width / 2.0,
+                        y: rail_y - style.rail.width / 2.0,
+                        width: bounds.width - offset - handle_width / 2.0,
+                        height: style.rail.width,
+                    },
+                    border: style.rail.border,
+                    ..renderer::Quad::default()
                 },
-                border: style.rail.border,
-                ..renderer::Quad::default()
-            },
-            style.rail.colors.1,
-        );
+                style.rail.colors.1,
+            );
+        }
 
         renderer.fill_quad(
             renderer::Quad {
