@@ -138,7 +138,10 @@ where
         renderer.fill_quad(
             renderer::Quad {
                 bounds: Rectangle { ..bounds },
-                border: style.border,
+                border: Border {
+                    color: Color::TRANSPARENT,
+                    ..style.border
+                },
                 ..renderer::Quad::default()
             },
             style.background,
