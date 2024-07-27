@@ -38,6 +38,8 @@ use crate::graphics::compositor;
 use crate::graphics::text::{Editor, Paragraph};
 use crate::graphics::Viewport;
 
+pub use tiny_skia;
+
 /// A [`tiny-skia`] graphics renderer for [`iced`].
 ///
 /// [`tiny-skia`]: https://github.com/RazrFalcon/tiny-skia
