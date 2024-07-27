@@ -23,6 +23,7 @@ pub use iced_graphics::core;
 pub use layer::Layer;
 pub use primitive::Primitive;
 pub use settings::Settings;
+pub use engine::color_profile;
 
 #[cfg(feature = "geometry")]
 pub use geometry::Geometry;
@@ -32,7 +33,7 @@ use crate::core::{
     Background, Color, Font, Pixels, Point, Rectangle, Transformation,
 };
 use crate::engine::Engine;
-use crate::engine::color_profile::{self, BGRA};
+use crate::engine::color_profile::BGRA;
 use crate::graphics::compositor;
 use crate::graphics::text::{Editor, Paragraph};
 use crate::graphics::Viewport;
