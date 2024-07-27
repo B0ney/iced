@@ -32,6 +32,7 @@ use crate::core::{
     Background, Color, Font, Pixels, Point, Rectangle, Transformation,
 };
 use crate::engine::Engine;
+use crate::engine::color_profile::{self, BGRA};
 use crate::graphics::compositor;
 use crate::graphics::text::{Editor, Paragraph};
 use crate::graphics::Viewport;
@@ -41,14 +42,14 @@ use crate::graphics::Viewport;
 /// [`tiny-skia`]: https://github.com/RazrFalcon/tiny-skia
 /// [`iced`]: https://github.com/iced-rs/iced
 #[derive(Debug)]
-pub struct Renderer {
+pub struct Renderer<ColorProfile: color_profile::ColorConversion = BGRA> {
     default_font: Font,
     default_text_size: Pixels,
     layers: layer::Stack,
-    engine: Engine, // TODO: Shared engine
+    engine: Engine<ColorProfile>, // TODO: Shared engine
 }
 
-impl Renderer {
+impl<Profile: color_profile::ColorConversion> Renderer<Profile> {
     pub fn new(default_font: Font, default_text_size: Pixels) -> Self {
         Self {
             default_font,
@@ -89,7 +90,7 @@ impl Renderer {
             pixels.fill_path(
                 &path,
                 &tiny_skia::Paint {
-                    shader: tiny_skia::Shader::SolidColor(engine::into_color(
+                    shader: tiny_skia::Shader::SolidColor(Profile::convert(
                         Color {
                             a: 0.1,
                             ..background_color
@@ -122,7 +123,7 @@ impl Renderer {
             pixels.fill_path(
                 &path,
                 &tiny_skia::Paint {
-                    shader: tiny_skia::Shader::SolidColor(engine::into_color(
+                    shader: tiny_skia::Shader::SolidColor(Profile::convert(
                         background_color,
                     )),
                     anti_alias: false,
@@ -207,7 +208,7 @@ impl Renderer {
                     &path,
                     &tiny_skia::Paint {
                         shader: tiny_skia::Shader::SolidColor(
-                            engine::into_color(Color::from_rgb(1.0, 0.0, 0.0)),
+                            Profile::convert(Color::from_rgb(1.0, 0.0, 0.0)),
                         ),
                         anti_alias: false,
                         ..tiny_skia::Paint::default()

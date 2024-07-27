@@ -1,22 +1,30 @@
+pub mod color_profile;
+
+use std::marker::PhantomData;
+
+use color_profile::ColorConversion;
+
 use crate::core::renderer::Quad;
 use crate::core::{
-    Background, Color, Gradient, Rectangle, Size, Transformation, Vector,
+    Background, Gradient, Rectangle, Size, Transformation, Vector,
 };
 use crate::graphics::{Image, Text};
 use crate::text;
 use crate::Primitive;
 
 #[derive(Debug)]
-pub struct Engine {
+pub struct Engine<ColorProfile = color_profile::BGRA> {
     text_pipeline: text::Pipeline,
 
     #[cfg(feature = "image")]
     pub(crate) raster_pipeline: crate::raster::Pipeline,
     #[cfg(feature = "svg")]
     pub(crate) vector_pipeline: crate::vector::Pipeline,
+
+    profile: PhantomData<ColorProfile>,
 }
 
-impl Engine {
+impl<Profile: ColorConversion> Engine<Profile> {
     pub fn new() -> Self {
         Self {
             text_pipeline: text::Pipeline::new(),
@@ -24,6 +32,7 @@ impl Engine {
             raster_pipeline: crate::raster::Pipeline::new(),
             #[cfg(feature = "svg")]
             vector_pipeline: crate::vector::Pipeline::new(),
+            profile: PhantomData,
         }
     }
 
@@ -125,7 +134,7 @@ impl Engine {
                                     shadow_distance,
                                 );
 
-                            let mut color = into_color(shadow.color);
+                            let mut color = Profile::convert(shadow.color);
                             color.apply_opacity(shadow_alpha);
 
                             color.to_color_u8().premultiply()
@@ -158,7 +167,7 @@ impl Engine {
             &tiny_skia::Paint {
                 shader: match background {
                     Background::Color(color) => {
-                        tiny_skia::Shader::SolidColor(into_color(*color))
+                        tiny_skia::Shader::SolidColor(Profile::convert(*color))
                     }
                     Background::Gradient(Gradient::Linear(linear)) => {
                         let (start, end) =
@@ -171,13 +180,7 @@ impl Engine {
                             .map(|stop| {
                                 tiny_skia::GradientStop::new(
                                     stop.offset,
-                                    tiny_skia::Color::from_rgba(
-                                        stop.color.b,
-                                        stop.color.g,
-                                        stop.color.r,
-                                        stop.color.a,
-                                    )
-                                    .expect("Create color"),
+                                    Profile::convert(stop.color),
                                 )
                             })
                             .collect();
@@ -245,9 +248,9 @@ impl Engine {
                 pixels.stroke_path(
                     &border_path,
                     &tiny_skia::Paint {
-                        shader: tiny_skia::Shader::SolidColor(into_color(
-                            quad.border.color,
-                        )),
+                        shader: tiny_skia::Shader::SolidColor(
+                            Profile::convert(quad.border.color),
+                        ),
                         anti_alias: true,
                         ..tiny_skia::Paint::default()
                     },
@@ -300,9 +303,9 @@ impl Engine {
                 temp_pixmap.stroke_path(
                     &border_radius_path,
                     &tiny_skia::Paint {
-                        shader: tiny_skia::Shader::SolidColor(into_color(
-                            quad.border.color,
-                        )),
+                        shader: tiny_skia::Shader::SolidColor(
+                            Profile::convert(quad.border.color),
+                        ),
                         anti_alias: true,
                         ..tiny_skia::Paint::default()
                     },
@@ -645,11 +648,6 @@ impl Engine {
         #[cfg(feature = "svg")]
         self.vector_pipeline.trim_cache();
     }
-}
-
-pub fn into_color(color: Color) -> tiny_skia::Color {
-    tiny_skia::Color::from_rgba(color.b, color.g, color.r, color.a)
-        .expect("Convert color from iced to tiny_skia")
 }
 
 fn into_transform(transformation: Transformation) -> tiny_skia::Transform {
