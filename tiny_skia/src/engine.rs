@@ -2,7 +2,7 @@ pub mod color_profile;
 
 use std::marker::PhantomData;
 
-use color_profile::ColorConversion;
+use color_profile::ColorProfile;
 
 use crate::core::renderer::Quad;
 use crate::core::{
@@ -24,7 +24,7 @@ pub struct Engine<ColorProfile = color_profile::BGRA> {
     profile: PhantomData<ColorProfile>,
 }
 
-impl<Profile: ColorConversion> Engine<Profile> {
+impl<Profile: ColorProfile> Engine<Profile> {
     pub fn new() -> Self {
         Self {
             text_pipeline: text::Pipeline::new(),

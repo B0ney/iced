@@ -1,3 +1,4 @@
+use crate::color_profile::BGRA;
 use crate::core::{Color, Rectangle, Size};
 use crate::graphics::compositor::{self, Information};
 use crate::graphics::damage;
@@ -27,7 +28,7 @@ pub struct Surface {
 }
 
 impl crate::graphics::Compositor for Compositor {
-    type Renderer = Renderer;
+    type Renderer = Renderer<BGRA>;
     type Surface = Surface;
 
     async fn with_backend<W: compositor::Window>(
@@ -142,7 +143,7 @@ pub fn new<W: compositor::Window>(
 }
 
 pub fn present<T: AsRef<str>>(
-    renderer: &mut Renderer,
+    renderer: &mut Renderer<BGRA>,
     surface: &mut Surface,
     viewport: &Viewport,
     background_color: Color,
@@ -211,7 +212,7 @@ pub fn present<T: AsRef<str>>(
 }
 
 pub fn screenshot<T: AsRef<str>>(
-    renderer: &mut Renderer,
+    renderer: &mut Renderer<BGRA>,
     surface: &mut Surface,
     viewport: &Viewport,
     background_color: Color,

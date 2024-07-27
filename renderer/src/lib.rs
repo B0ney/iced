@@ -25,7 +25,7 @@ pub type Compositor = renderer::Compositor;
 mod renderer {
     pub type Renderer = crate::fallback::Renderer<
         iced_wgpu::Renderer,
-        iced_tiny_skia::Renderer,
+        iced_tiny_skia::Renderer<iced_tiny_skia::color_profile::BGRA>,
     >;
 
     pub type Compositor = crate::fallback::Compositor<

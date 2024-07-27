@@ -17,13 +17,14 @@ mod vector;
 #[cfg(feature = "geometry")]
 pub mod geometry;
 
+use engine::color_profile::ColorProfile;
 pub use iced_graphics as graphics;
 pub use iced_graphics::core;
 
+pub use engine::color_profile;
 pub use layer::Layer;
 pub use primitive::Primitive;
 pub use settings::Settings;
-pub use engine::color_profile;
 
 #[cfg(feature = "geometry")]
 pub use geometry::Geometry;
@@ -32,8 +33,8 @@ use crate::core::renderer;
 use crate::core::{
     Background, Color, Font, Pixels, Point, Rectangle, Transformation,
 };
-use crate::engine::Engine;
 use crate::engine::color_profile::BGRA;
+use crate::engine::Engine;
 use crate::graphics::compositor;
 use crate::graphics::text::{Editor, Paragraph};
 use crate::graphics::Viewport;
@@ -45,14 +46,14 @@ pub use tiny_skia;
 /// [`tiny-skia`]: https://github.com/RazrFalcon/tiny-skia
 /// [`iced`]: https://github.com/iced-rs/iced
 #[derive(Debug)]
-pub struct Renderer<ColorProfile: color_profile::ColorConversion = BGRA> {
+pub struct Renderer<ColorProfile: color_profile::ColorProfile> {
     default_font: Font,
     default_text_size: Pixels,
     layers: layer::Stack,
     engine: Engine<ColorProfile>, // TODO: Shared engine
 }
 
-impl<Profile: color_profile::ColorConversion> Renderer<Profile> {
+impl<Profile: color_profile::ColorProfile> Renderer<Profile> {
     pub fn new(default_font: Font, default_text_size: Pixels) -> Self {
         Self {
             default_font,
@@ -230,7 +231,7 @@ impl<Profile: color_profile::ColorConversion> Renderer<Profile> {
     }
 }
 
-impl core::Renderer for Renderer {
+impl<Profile: ColorProfile> core::Renderer for Renderer<Profile> {
     fn start_layer(&mut self, bounds: Rectangle) {
         self.layers.push_clip(bounds);
     }
@@ -261,7 +262,7 @@ impl core::Renderer for Renderer {
     }
 }
 
-impl core::text::Renderer for Renderer {
+impl<Profile: ColorProfile> core::text::Renderer for Renderer<Profile> {
     type Font = Font;
     type Paragraph = Paragraph;
     type Editor = Editor;
@@ -320,7 +321,7 @@ impl core::text::Renderer for Renderer {
 }
 
 #[cfg(feature = "geometry")]
-impl graphics::geometry::Renderer for Renderer {
+impl<Profile: ColorProfile> graphics::geometry::Renderer for Renderer<Profile> {
     type Geometry = Geometry;
     type Frame = geometry::Frame;
 
@@ -362,14 +363,14 @@ impl graphics::geometry::Renderer for Renderer {
     }
 }
 
-impl graphics::mesh::Renderer for Renderer {
+impl<Profile: ColorProfile> graphics::mesh::Renderer for Renderer<Profile> {
     fn draw_mesh(&mut self, _mesh: graphics::Mesh) {
         log::warn!("iced_tiny_skia does not support drawing meshes");
     }
 }
 
 #[cfg(feature = "image")]
-impl core::image::Renderer for Renderer {
+impl<Profile: ColorProfile> core::image::Renderer for Renderer<Profile> {
     type Handle = core::image::Handle;
 
     fn measure_image(&self, handle: &Self::Handle) -> crate::core::Size<u32> {
@@ -397,7 +398,7 @@ impl core::image::Renderer for Renderer {
 }
 
 #[cfg(feature = "svg")]
-impl core::svg::Renderer for Renderer {
+impl<Profile: ColorProfile> core::svg::Renderer for Renderer<Profile> {
     fn measure_svg(
         &self,
         handle: &core::svg::Handle,
@@ -425,6 +426,6 @@ impl core::svg::Renderer for Renderer {
     }
 }
 
-impl compositor::Default for Renderer {
+impl compositor::Default for Renderer<BGRA> {
     type Compositor = window::Compositor;
 }
