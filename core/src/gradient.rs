@@ -48,7 +48,7 @@ pub struct Linear {
     /// How the [`Gradient`] is angled within its bounds.
     pub angle: Radians,
     /// [`ColorStop`]s along the linear gradient path.
-    pub stops: [Option<ColorStop>; 8],
+    pub stops: [Option<ColorStop>; 16],
 }
 
 impl Linear {
@@ -56,7 +56,7 @@ impl Linear {
     pub fn new(angle: impl Into<Radians>) -> Self {
         Self {
             angle: angle.into(),
-            stops: [None; 8],
+            stops: [None; 16],
         }
     }
 
@@ -73,7 +73,7 @@ impl Linear {
                     Some(stop) => stop.offset.partial_cmp(&offset).unwrap(),
                 });
 
-            if index < 8 {
+            if index < 16 {
                 self.stops[index] = Some(ColorStop { offset, color });
             }
         } else {
