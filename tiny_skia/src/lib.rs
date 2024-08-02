@@ -100,7 +100,7 @@ impl<Profile: color_profile::ColorProfile> Renderer<Profile> {
                             ..background_color
                         },
                     )),
-                    anti_alias: false,
+                    anti_alias: true,
                     ..Default::default()
                 },
                 tiny_skia::FillRule::default(),
@@ -130,7 +130,7 @@ impl<Profile: color_profile::ColorProfile> Renderer<Profile> {
                     shader: tiny_skia::Shader::SolidColor(Profile::convert(
                         background_color,
                     )),
-                    anti_alias: false,
+                    anti_alias: true,
                     blend_mode: tiny_skia::BlendMode::Source,
                     ..Default::default()
                 },
@@ -214,7 +214,7 @@ impl<Profile: color_profile::ColorProfile> Renderer<Profile> {
                         shader: tiny_skia::Shader::SolidColor(
                             Profile::convert(Color::from_rgb(1.0, 0.0, 0.0)),
                         ),
-                        anti_alias: false,
+                        anti_alias: true,
                         ..tiny_skia::Paint::default()
                     },
                     &tiny_skia::Stroke {
