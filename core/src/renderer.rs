@@ -1,5 +1,5 @@
 //! Write your own renderer.
-#[cfg(debug_assertions)]
+// #[cfg(debug_assertions)] // causes compile error if compiled in release
 mod null;
 
 use crate::{
