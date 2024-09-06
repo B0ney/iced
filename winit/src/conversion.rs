@@ -79,6 +79,10 @@ pub fn window_attributes(
 
         attributes = attributes
             .with_skip_taskbar(settings.platform_specific.skip_taskbar);
+
+        attributes = attributes.with_undecorated_shadow(
+            settings.platform_specific.undecorated_shadow,
+        );
     }
 
     #[cfg(target_os = "macos")]

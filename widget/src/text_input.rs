@@ -19,7 +19,7 @@ use crate::core::keyboard::key;
 use crate::core::layout;
 use crate::core::mouse::{self, click};
 use crate::core::renderer;
-use crate::core::text::paragraph;
+use crate::core::text::paragraph::{self, Paragraph as _};
 use crate::core::text::{self, Text};
 use crate::core::time::{Duration, Instant};
 use crate::core::touch;
@@ -74,6 +74,7 @@ pub struct TextInput<
     padding: Padding,
     size: Option<Pixels>,
     line_height: text::LineHeight,
+    alignment: alignment::Horizontal,
     on_input: Option<Box<dyn Fn(String) -> Message + 'a>>,
     on_paste: Option<Box<dyn Fn(String) -> Message + 'a>>,
     on_submit: Option<Message>,
@@ -103,6 +104,7 @@ where
             padding: DEFAULT_PADDING,
             size: None,
             line_height: text::LineHeight::default(),
+            alignment: alignment::Horizontal::Left,
             on_input: None,
             on_paste: None,
             on_submit: None,
@@ -193,6 +195,15 @@ where
         self
     }
 
+    /// Sets the horizontal alignment of the [`TextInput`].
+    pub fn align_x(
+        mut self,
+        alignment: impl Into<alignment::Horizontal>,
+    ) -> Self {
+        self.alignment = alignment.into();
+        self
+    }
+
     /// Sets the style of the [`TextInput`].
     #[must_use]
     pub fn style(mut self, style: impl Fn(&Theme, Status) -> Style + 'a) -> Self
@@ -240,6 +251,7 @@ where
             horizontal_alignment: alignment::Horizontal::Left,
             vertical_alignment: alignment::Vertical::Center,
             shaping: text::Shaping::Advanced,
+            wrapping: text::Wrapping::default(),
         };
 
         state.placeholder.update(placeholder_text);
@@ -264,6 +276,7 @@ where
                 horizontal_alignment: alignment::Horizontal::Center,
                 vertical_alignment: alignment::Vertical::Center,
                 shaping: text::Shaping::Advanced,
+                wrapping: text::Wrapping::default(),
             };
 
             state.icon.update(icon_text);
@@ -384,11 +397,11 @@ where
                             position,
                         );
 
-                    let is_cursor_visible = ((focus.now - focus.updated_at)
-                        .as_millis()
-                        / CURSOR_BLINK_INTERVAL_MILLIS)
-                        % 2
-                        == 0;
+                    let is_cursor_visible = !is_disabled
+                        && ((focus.now - focus.updated_at).as_millis()
+                            / CURSOR_BLINK_INTERVAL_MILLIS)
+                            % 2
+                            == 0;
 
                     let cursor = if is_cursor_visible {
                         Some((
@@ -457,9 +470,21 @@ where
         };
 
         let draw = |renderer: &mut Renderer, viewport| {
+            let paragraph = if text.is_empty() {
+                state.placeholder.raw()
+            } else {
+                state.value.raw()
+            };
+
+            let alignment_offset = alignment_offset(
+                text_bounds.width,
+                paragraph.min_width(),
+                self.alignment,
+            );
+
             if let Some((cursor, color)) = cursor {
                 renderer.with_translation(
-                    Vector::new(-offset, 0.0),
+                    Vector::new(alignment_offset - offset, 0.0),
                     |renderer| {
                         renderer.fill_quad(cursor, color);
                     },
@@ -469,13 +494,9 @@ where
             }
 
             renderer.fill_paragraph(
-                if text.is_empty() {
-                    state.placeholder.raw()
-                } else {
-                    state.value.raw()
-                },
+                paragraph,
                 Point::new(text_bounds.x, text_bounds.center_y())
-                    - Vector::new(offset, 0.0),
+                    + Vector::new(alignment_offset - offset, 0.0),
                 if text.is_empty() {
                     style.placeholder
                 } else {
@@ -512,12 +533,9 @@ where
     fn diff(&self, tree: &mut Tree) {
         let state = tree.state.downcast_mut::<State<Renderer::Paragraph>>();
 
-        // Unfocus text input if it becomes disabled
+        // Stop pasting if input becomes disabled
         if self.on_input.is_none() {
-            state.last_click = None;
-            state.is_focused = None;
             state.is_pasting = None;
-            state.is_dragging = false;
         }
     }
 
@@ -542,7 +560,7 @@ where
         tree: &mut Tree,
         _layout: Layout<'_>,
         _renderer: &Renderer,
-        operation: &mut dyn Operation<()>,
+        operation: &mut dyn Operation,
     ) {
         let state = tree.state.downcast_mut::<State<Renderer::Paragraph>>();
 
@@ -578,11 +596,7 @@ where
             | Event::Touch(touch::Event::FingerPressed { .. }) => {
                 let state = state::<Renderer>(tree);
 
-                let click_position = if self.on_input.is_some() {
-                    cursor.position_over(layout.bounds())
-                } else {
-                    None
-                };
+                let click_position = cursor.position_over(layout.bounds());
 
                 state.is_focused = if click_position.is_some() {
                     state.is_focused.or_else(|| {
@@ -600,7 +614,18 @@ where
 
                 if let Some(cursor_position) = click_position {
                     let text_layout = layout.children().next().unwrap();
-                    let target = cursor_position.x - text_layout.bounds().x;
+
+                    let target = {
+                        let text_bounds = text_layout.bounds();
+
+                        let alignment_offset = alignment_offset(
+                            text_bounds.width,
+                            state.value.raw().min_width(),
+                            self.alignment,
+                        );
+
+                        cursor_position.x - text_bounds.x - alignment_offset
+                    };
 
                     let click =
                         mouse::Click::new(cursor_position, state.last_click);
@@ -677,7 +702,18 @@ where
 
                 if state.is_dragging {
                     let text_layout = layout.children().next().unwrap();
-                    let target = position.x - text_layout.bounds().x;
+
+                    let target = {
+                        let text_bounds = text_layout.bounds();
+
+                        let alignment_offset = alignment_offset(
+                            text_bounds.width,
+                            state.value.raw().min_width(),
+                            self.alignment,
+                        );
+
+                        position.x - text_bounds.x - alignment_offset
+                    };
 
                     let value = if self.is_secure {
                         self.value.secure()
@@ -706,10 +742,6 @@ where
                 let state = state::<Renderer>(tree);
 
                 if let Some(focus) = &mut state.is_focused {
-                    let Some(on_input) = &self.on_input else {
-                        return event::Status::Ignored;
-                    };
-
                     let modifiers = state.keyboard_modifiers;
                     focus.updated_at = Instant::now();
 
@@ -733,6 +765,10 @@ where
                             if state.keyboard_modifiers.command()
                                 && !self.is_secure =>
                         {
+                            let Some(on_input) = &self.on_input else {
+                                return event::Status::Ignored;
+                            };
+
                             if let Some((start, end)) =
                                 state.cursor.selection(&self.value)
                             {
@@ -757,6 +793,10 @@ where
                             if state.keyboard_modifiers.command()
                                 && !state.keyboard_modifiers.alt() =>
                         {
+                            let Some(on_input) = &self.on_input else {
+                                return event::Status::Ignored;
+                            };
+
                             let content = match state.is_pasting.take() {
                                 Some(content) => content,
                                 None => {
@@ -800,6 +840,10 @@ where
                     }
 
                     if let Some(text) = text {
+                        let Some(on_input) = &self.on_input else {
+                            return event::Status::Ignored;
+                        };
+
                         state.is_pasting = None;
 
                         if let Some(c) =
@@ -828,6 +872,10 @@ where
                             }
                         }
                         keyboard::Key::Named(key::Named::Backspace) => {
+                            let Some(on_input) = &self.on_input else {
+                                return event::Status::Ignored;
+                            };
+
                             if modifiers.jump()
                                 && state.cursor.selection(&self.value).is_none()
                             {
@@ -852,6 +900,10 @@ where
                             update_cache(state, &self.value);
                         }
                         keyboard::Key::Named(key::Named::Delete) => {
+                            let Some(on_input) = &self.on_input else {
+                                return event::Status::Ignored;
+                            };
+
                             if modifiers.jump()
                                 && state.cursor.selection(&self.value).is_none()
                             {
@@ -1070,7 +1122,7 @@ where
     ) -> mouse::Interaction {
         if cursor.is_over(layout.bounds()) {
             if self.on_input.is_none() {
-                mouse::Interaction::NotAllowed
+                mouse::Interaction::Idle
             } else {
                 mouse::Interaction::Text
             }
@@ -1382,6 +1434,7 @@ fn replace_paragraph<Renderer>(
         horizontal_alignment: alignment::Horizontal::Left,
         vertical_alignment: alignment::Vertical::Top,
         shaping: text::Shaping::Advanced,
+        wrapping: text::Wrapping::default(),
     });
 }
 
@@ -1484,5 +1537,23 @@ pub fn default(theme: &Theme, status: Status) -> Style {
             value: active.placeholder,
             ..active
         },
+    }
+}
+
+fn alignment_offset(
+    text_bounds_width: f32,
+    text_min_width: f32,
+    alignment: alignment::Horizontal,
+) -> f32 {
+    if text_min_width > text_bounds_width {
+        0.0
+    } else {
+        match alignment {
+            alignment::Horizontal::Left => 0.0,
+            alignment::Horizontal::Center => {
+                (text_bounds_width - text_min_width) / 2.0
+            }
+            alignment::Horizontal::Right => text_bounds_width - text_min_width,
+        }
     }
 }

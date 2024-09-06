@@ -9,7 +9,7 @@ use crate::core::mouse;
 use crate::core::renderer;
 use crate::core::text::editor::{Cursor, Editor as _};
 use crate::core::text::highlighter::{self, Highlighter};
-use crate::core::text::{self, LineHeight, Text};
+use crate::core::text::{self, LineHeight, Text, Wrapping};
 use crate::core::time::{Duration, Instant};
 use crate::core::widget::operation;
 use crate::core::widget::{self, Widget};
@@ -47,6 +47,7 @@ pub struct TextEditor<
     width: Length,
     height: Length,
     padding: Padding,
+    wrapping: Wrapping,
     class: Theme::Class<'a>,
     key_binding: Option<Box<dyn Fn(KeyPress) -> Option<Binding<Message>> + 'a>>,
     on_edit: Option<Box<dyn Fn(Action) -> Message + 'a>>,
@@ -74,6 +75,7 @@ where
             width: Length::Fill,
             height: Length::Shrink,
             padding: Padding::new(5.0),
+            wrapping: Wrapping::default(),
             class: Theme::default(),
             key_binding: None,
             on_edit: None,
@@ -148,6 +150,12 @@ where
         self
     }
 
+    /// Sets the [`Wrapping`] strategy of the [`TextEditor`].
+    pub fn wrapping(mut self, wrapping: Wrapping) -> Self {
+        self.wrapping = wrapping;
+        self
+    }
+
     /// Highlights the [`TextEditor`] using the given syntax and theme.
     #[cfg(feature = "highlighter")]
     pub fn highlight(
@@ -186,6 +194,7 @@ where
             width: self.width,
             height: self.height,
             padding: self.padding,
+            wrapping: self.wrapping,
             class: self.class,
             key_binding: self.key_binding,
             on_edit: self.on_edit,
@@ -496,6 +505,7 @@ where
             self.font.unwrap_or_else(|| renderer.default_font()),
             self.text_size.unwrap_or_else(|| renderer.default_size()),
             self.line_height,
+            self.wrapping,
             state.highlighter.borrow_mut().deref_mut(),
         );
 
@@ -729,7 +739,7 @@ where
         defaults: &renderer::Style,
         layout: Layout<'_>,
         cursor: mouse::Cursor,
-        viewport: &Rectangle,
+        _viewport: &Rectangle,
     ) {
         let bounds = layout.bounds();
 
@@ -768,20 +778,14 @@ where
             style.background,
         );
 
-        let position = bounds.position()
-            + Vector::new(self.padding.left, self.padding.top);
+        let text_bounds = bounds.shrink(self.padding);
 
         if internal.editor.is_empty() {
             if let Some(placeholder) = self.placeholder.clone() {
                 renderer.fill_text(
                     Text {
                         content: placeholder.into_owned(),
-                        bounds: bounds.size()
-                            - Size::new(
-                                self.padding.right,
-                                self.padding.bottom,
-                            ),
-
+                        bounds: text_bounds.size(),
                         size: self
                             .text_size
                             .unwrap_or_else(|| renderer.default_size()),
@@ -790,25 +794,23 @@ where
                         horizontal_alignment: alignment::Horizontal::Left,
                         vertical_alignment: alignment::Vertical::Top,
                         shaping: text::Shaping::Advanced,
+                        wrapping: self.wrapping,
                     },
-                    position,
+                    text_bounds.position(),
                     style.placeholder,
-                    *viewport,
+                    text_bounds,
                 );
             }
         } else {
             renderer.fill_editor(
                 &internal.editor,
-                position,
+                text_bounds.position(),
                 defaults.text_color,
-                *viewport,
+                text_bounds,
             );
         }
 
-        let translation = Vector::new(
-            bounds.x + self.padding.left,
-            bounds.y + self.padding.top,
-        );
+        let translation = text_bounds.position() - Point::ORIGIN;
 
         if let Some(focus) = state.focus.as_ref() {
             match internal.editor.cursor() {
@@ -826,15 +828,12 @@ where
                             ),
                         );
 
-                    if let Some(clipped_cursor) = bounds.intersection(&cursor) {
+                    if let Some(clipped_cursor) =
+                        text_bounds.intersection(&cursor)
+                    {
                         renderer.fill_quad(
                             renderer::Quad {
-                                bounds: Rectangle {
-                                    x: clipped_cursor.x.floor(),
-                                    y: clipped_cursor.y,
-                                    width: clipped_cursor.width,
-                                    height: clipped_cursor.height,
-                                },
+                                bounds: clipped_cursor,
                                 ..renderer::Quad::default()
                             },
                             style.value,
@@ -843,7 +842,7 @@ where
                 }
                 Cursor::Selection(ranges) => {
                     for range in ranges.into_iter().filter_map(|range| {
-                        bounds.intersection(&(range + translation))
+                        text_bounds.intersection(&(range + translation))
                     }) {
                         renderer.fill_quad(
                             renderer::Quad {
@@ -885,7 +884,7 @@ where
         tree: &mut widget::Tree,
         _layout: Layout<'_>,
         _renderer: &Renderer,
-        operation: &mut dyn widget::Operation<()>,
+        operation: &mut dyn widget::Operation,
     ) {
         let state = tree.state.downcast_mut::<State<Highlighter>>();
 

@@ -1,4 +1,5 @@
 //! Build and reuse custom widgets using The Elm Architecture.
+#![allow(deprecated)]
 use crate::core::event;
 use crate::core::layout::{self, Layout};
 use crate::core::mouse;
@@ -30,6 +31,12 @@ use std::rc::Rc;
 ///
 /// Additionally, a [`Component`] is capable of producing a `Message` to notify
 /// the parent application of any relevant interactions.
+#[cfg(feature = "lazy")]
+#[deprecated(
+    since = "0.13.0",
+    note = "components introduce encapsulated state and hamper the use of a single source of truth. \
+    Instead, leverage the Elm Architecture directly, or implement a custom widget"
+)]
 pub trait Component<Message, Theme = crate::Theme, Renderer = crate::Renderer> {
     /// The internal state of this [`Component`].
     type State: Default;
@@ -59,7 +66,7 @@ pub trait Component<Message, Theme = crate::Theme, Renderer = crate::Renderer> {
     fn operate(
         &self,
         _state: &mut Self::State,
-        _operation: &mut dyn widget::Operation<()>,
+        _operation: &mut dyn widget::Operation,
     ) {
     }
 
@@ -172,7 +179,7 @@ where
 
     fn rebuild_element_with_operation(
         &self,
-        operation: &mut dyn widget::Operation<()>,
+        operation: &mut dyn widget::Operation,
     ) {
         let heads = self.state.borrow_mut().take().unwrap().into_heads();
 
@@ -358,7 +365,7 @@ where
         tree: &mut Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
-        operation: &mut dyn widget::Operation<()>,
+        operation: &mut dyn widget::Operation,
     ) {
         self.rebuild_element_with_operation(operation);
 

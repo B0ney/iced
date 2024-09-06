@@ -183,6 +183,16 @@ impl<Profile: color_profile::ColorProfile> Renderer<Profile> {
                     engine::adjust_clip_mask(clip_mask, clip_bounds);
                 }
 
+                for image in &layer.images {
+                    self.engine.draw_image(
+                        image,
+                        Transformation::scale(scale_factor),
+                        pixels,
+                        clip_mask,
+                        clip_bounds,
+                    );
+                }
+
                 for group in &layer.text {
                     for text in group.as_slice() {
                         self.engine.draw_text(
@@ -194,16 +204,6 @@ impl<Profile: color_profile::ColorProfile> Renderer<Profile> {
                             clip_bounds,
                         );
                     }
-                }
-
-                for image in &layer.images {
-                    self.engine.draw_image(
-                        image,
-                        Transformation::scale(scale_factor),
-                        pixels,
-                        clip_mask,
-                        clip_bounds,
-                    );
                 }
             }
 
@@ -335,6 +335,7 @@ impl<Profile: ColorProfile> graphics::geometry::Renderer for Renderer<Profile> {
         match geometry {
             Geometry::Live {
                 primitives,
+                images,
                 text,
                 clip_bounds,
             } => {
@@ -344,6 +345,10 @@ impl<Profile: ColorProfile> graphics::geometry::Renderer for Renderer<Profile> {
                     transformation,
                 );
 
+                for image in images {
+                    layer.draw_image(image, transformation);
+                }
+
                 layer.draw_text_group(text, clip_bounds, transformation);
             }
             Geometry::Cache(cache) => {
@@ -352,6 +357,10 @@ impl<Profile: ColorProfile> graphics::geometry::Renderer for Renderer<Profile> {
                     cache.clip_bounds,
                     transformation,
                 );
+
+                for image in cache.images.iter() {
+                    layer.draw_image(image.clone(), transformation);
+                }
 
                 layer.draw_text_cache(
                     cache.text,
@@ -377,23 +386,9 @@ impl<Profile: ColorProfile> core::image::Renderer for Renderer<Profile> {
         self.engine.raster_pipeline.dimensions(handle)
     }
 
-    fn draw_image(
-        &mut self,
-        handle: Self::Handle,
-        filter_method: core::image::FilterMethod,
-        bounds: Rectangle,
-        rotation: core::Radians,
-        opacity: f32,
-    ) {
+    fn draw_image(&mut self, image: core::Image, bounds: Rectangle) {
         let (layer, transformation) = self.layers.current_mut();
-        layer.draw_image(
-            handle,
-            filter_method,
-            bounds,
-            transformation,
-            rotation,
-            opacity,
-        );
+        layer.draw_raster(image, bounds, transformation);
     }
 }
 
@@ -406,23 +401,9 @@ impl<Profile: ColorProfile> core::svg::Renderer for Renderer<Profile> {
         self.engine.vector_pipeline.viewport_dimensions(handle)
     }
 
-    fn draw_svg(
-        &mut self,
-        handle: core::svg::Handle,
-        color: Option<Color>,
-        bounds: Rectangle,
-        rotation: core::Radians,
-        opacity: f32,
-    ) {
+    fn draw_svg(&mut self, svg: core::Svg, bounds: Rectangle) {
         let (layer, transformation) = self.layers.current_mut();
-        layer.draw_svg(
-            handle,
-            color,
-            bounds,
-            transformation,
-            rotation,
-            opacity,
-        );
+        layer.draw_svg(svg, bounds, transformation);
     }
 }
 

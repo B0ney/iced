@@ -184,7 +184,6 @@ where
     }
 
     /// Sets the style class of the [`Container`].
-    #[cfg(feature = "advanced")]
     #[must_use]
     pub fn class(mut self, class: impl Into<Theme::Class<'a>>) -> Self {
         self.class = class.into();
@@ -245,7 +244,7 @@ where
         tree: &mut Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
-        operation: &mut dyn Operation<()>,
+        operation: &mut dyn Operation,
     ) {
         operation.container(
             self.id.as_ref().map(|id| &id.0),
@@ -613,6 +612,12 @@ pub trait Catalog {
 /// A styling function for a [`Container`].
 pub type StyleFn<'a, Theme> = Box<dyn Fn(&Theme) -> Style + 'a>;
 
+impl<'a, Theme> From<Style> for StyleFn<'a, Theme> {
+    fn from(style: Style) -> Self {
+        Box::new(move |_theme| style)
+    }
+}
+
 impl Catalog for Theme {
     type Class<'a> = StyleFn<'a, Self>;
 
@@ -628,6 +633,11 @@ impl Catalog for Theme {
 /// A transparent [`Container`].
 pub fn transparent<Theme>(_theme: &Theme) -> Style {
     Style::default()
+}
+
+/// A [`Container`] with the given [`Background`].
+pub fn background(background: impl Into<Background>) -> Style {
+    Style::default().background(background)
 }
 
 /// A rounded [`Container`] with a background.

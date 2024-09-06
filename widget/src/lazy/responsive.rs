@@ -21,6 +21,7 @@ use std::ops::Deref;
 ///
 /// A [`Responsive`] widget will always try to fill all the available space of
 /// its parent.
+#[cfg(feature = "lazy")]
 #[allow(missing_debug_implementations)]
 pub struct Responsive<
     'a,
@@ -161,7 +162,7 @@ where
         tree: &mut Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
-        operation: &mut dyn widget::Operation<()>,
+        operation: &mut dyn widget::Operation,
     ) {
         let state = tree.state.downcast_mut::<State>();
         let mut content = self.content.borrow_mut();

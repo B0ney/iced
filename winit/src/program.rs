@@ -307,8 +307,6 @@ where
                 }
             };
 
-            let clipboard = Clipboard::connect(&window);
-
             let finish_boot = async move {
                 let mut compositor =
                     C::new(graphics_settings, window.clone()).await?;
@@ -318,10 +316,7 @@ where
                 }
 
                 sender
-                    .send(Boot {
-                        compositor,
-                        clipboard,
-                    })
+                    .send(Boot { compositor })
                     .ok()
                     .expect("Send boot event");
 
@@ -617,7 +612,6 @@ where
 
 struct Boot<C> {
     compositor: C,
-    clipboard: Clipboard,
 }
 
 #[derive(Debug)]
@@ -650,7 +644,7 @@ async fn run_instance<P, C>(
     mut runtime: Runtime<P::Executor, Proxy<P::Message>, Action<P::Message>>,
     mut proxy: Proxy<P::Message>,
     mut debug: Debug,
-    mut boot: oneshot::Receiver<Boot<C>>,
+    boot: oneshot::Receiver<Boot<C>>,
     mut event_receiver: mpsc::UnboundedReceiver<Event<Action<P::Message>>>,
     mut control_sender: mpsc::UnboundedSender<Control>,
     is_daemon: bool,
@@ -662,10 +656,7 @@ async fn run_instance<P, C>(
     use winit::event;
     use winit::event_loop::ControlFlow;
 
-    let Boot {
-        mut compositor,
-        mut clipboard,
-    } = boot.try_recv().ok().flatten().expect("Receive boot");
+    let Boot { mut compositor } = boot.await.expect("Receive boot");
 
     let mut window_manager = WindowManager::new();
     let mut is_window_opening = !is_daemon;
@@ -676,10 +667,22 @@ async fn run_instance<P, C>(
 
     let mut ui_caches = FxHashMap::default();
     let mut user_interfaces = ManuallyDrop::new(FxHashMap::default());
+    let mut clipboard = Clipboard::unconnected();
 
     debug.startup_finished();
 
-    while let Some(event) = event_receiver.next().await {
+    loop {
+        // Empty the queue if possible
+        let event = if let Ok(event) = event_receiver.try_next() {
+            event
+        } else {
+            event_receiver.next().await
+        };
+
+        let Some(event) = event else {
+            break;
+        };
+
         match event {
             Event::WindowCreated {
                 id,
@@ -723,6 +726,10 @@ async fn run_instance<P, C>(
                     }),
                 ));
 
+                if clipboard.window_id().is_none() {
+                    clipboard = Clipboard::connect(window.raw.clone());
+                }
+
                 let _ = on_open.send(id);
                 is_window_opening = false;
             }
@@ -754,6 +761,7 @@ async fn run_instance<P, C>(
                             action,
                             &program,
                             &mut compositor,
+                            &mut events,
                             &mut messages,
                             &mut clipboard,
                             &mut control_sender,
@@ -967,14 +975,22 @@ async fn run_instance<P, C>(
                             winit::event::WindowEvent::CloseRequested
                         ) && window.exit_on_close_request
                         {
-                            let _ = window_manager.remove(id);
-                            let _ = user_interfaces.remove(&id);
-                            let _ = ui_caches.remove(&id);
-
-                            events.push((
-                                id,
-                                core::Event::Window(window::Event::Closed),
-                            ));
+                            run_action(
+                                Action::Window(runtime::window::Action::Close(
+                                    id,
+                                )),
+                                &program,
+                                &mut compositor,
+                                &mut events,
+                                &mut messages,
+                                &mut clipboard,
+                                &mut control_sender,
+                                &mut debug,
+                                &mut user_interfaces,
+                                &mut window_manager,
+                                &mut ui_caches,
+                                &mut is_window_opening,
+                            );
                         } else {
                             window.state.update(
                                 &window.raw,
@@ -1161,6 +1177,7 @@ fn run_action<P, C>(
     action: Action<P::Message>,
     program: &P,
     compositor: &mut C,
+    events: &mut Vec<(window::Id, core::Event)>,
     messages: &mut Vec<P::Message>,
     clipboard: &mut Clipboard,
     control_sender: &mut mpsc::UnboundedSender<Control>,
@@ -1210,8 +1227,23 @@ fn run_action<P, C>(
                 *is_window_opening = true;
             }
             window::Action::Close(id) => {
-                let _ = window_manager.remove(id);
                 let _ = ui_caches.remove(&id);
+                let _ = interfaces.remove(&id);
+
+                if let Some(window) = window_manager.remove(id) {
+                    if clipboard.window_id() == Some(window.raw.id()) {
+                        *clipboard = window_manager
+                            .first()
+                            .map(|window| window.raw.clone())
+                            .map(Clipboard::connect)
+                            .unwrap_or_else(Clipboard::unconnected);
+                    }
+
+                    events.push((
+                        id,
+                        core::Event::Window(core::window::Event::Closed),
+                    ));
+                }
             }
             window::Action::GetOldest(channel) => {
                 let id =
@@ -1271,7 +1303,7 @@ fn run_action<P, C>(
                 }
             }
             window::Action::GetPosition(id, channel) => {
-                if let Some(window) = window_manager.get_mut(id) {
+                if let Some(window) = window_manager.get(id) {
                     let position = window
                         .raw
                         .inner_position()
@@ -1284,6 +1316,13 @@ fn run_action<P, C>(
                         .ok();
 
                     let _ = channel.send(position);
+                }
+            }
+            window::Action::GetScaleFactor(id, channel) => {
+                if let Some(window) = window_manager.get_mut(id) {
+                    let scale_factor = window.raw.scale_factor();
+
+                    let _ = channel.send(scale_factor as f32);
                 }
             }
             window::Action::Move(id, position) => {
@@ -1394,6 +1433,16 @@ fn run_action<P, C>(
                         window.state.physical_size(),
                         window.state.viewport().scale_factor(),
                     ));
+                }
+            }
+            window::Action::EnableMousePassthrough(id) => {
+                if let Some(window) = window_manager.get_mut(id) {
+                    let _ = window.raw.set_cursor_hittest(false);
+                }
+            }
+            window::Action::DisableMousePassthrough(id) => {
+                if let Some(window) = window_manager.get_mut(id) {
+                    let _ = window.raw.set_cursor_hittest(true);
                 }
             }
         },

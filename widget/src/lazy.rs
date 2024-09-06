@@ -4,6 +4,7 @@ pub(crate) mod helpers;
 pub mod component;
 pub mod responsive;
 
+#[allow(deprecated)]
 pub use component::Component;
 pub use responsive::Responsive;
 
@@ -29,6 +30,7 @@ use std::hash::{Hash, Hasher as H};
 use std::rc::Rc;
 
 /// A widget that only rebuilds its contents when necessary.
+#[cfg(feature = "lazy")]
 #[allow(missing_debug_implementations)]
 pub struct Lazy<'a, Message, Theme, Renderer, Dependency, View> {
     dependency: Dependency,
@@ -182,7 +184,7 @@ where
         tree: &mut Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
-        operation: &mut dyn widget::Operation<()>,
+        operation: &mut dyn widget::Operation,
     ) {
         self.with_element(|element| {
             element.as_widget().operate(
