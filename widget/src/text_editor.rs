@@ -109,6 +109,12 @@ where
         self
     }
 
+    /// Sets the width of the [`TextEditor`].
+    pub fn width(mut self, width: impl Into<Pixels>) -> Self {
+        self.width = Length::from(width.into());
+        self
+    }
+
     /// Sets the message that should be produced when some action is performed in
     /// the [`TextEditor`].
     ///
@@ -498,7 +504,7 @@ where
             state.highlighter_settings = self.highlighter_settings.clone();
         }
 
-        let limits = limits.height(self.height);
+        let limits = limits.width(self.width).height(self.height);
 
         internal.editor.update(
             limits.shrink(self.padding).max(),
@@ -975,7 +981,9 @@ impl<Message> Binding<Message> {
             keyboard::Key::Named(key::Named::Backspace) => {
                 Some(Self::Backspace)
             }
-            keyboard::Key::Named(key::Named::Delete) => Some(Self::Delete),
+            keyboard::Key::Named(key::Named::Delete) if text.is_none() => {
+                Some(Self::Delete)
+            }
             keyboard::Key::Named(key::Named::Escape) => Some(Self::Unfocus),
             keyboard::Key::Character("c") if modifiers.command() => {
                 Some(Self::Copy)
