@@ -411,7 +411,7 @@ pub fn into_paint(style: Style) -> tiny_skia::Paint<'static> {
     tiny_skia::Paint {
         shader: match style {
             Style::Solid(color) => tiny_skia::Shader::SolidColor(
-                tiny_skia::Color::from_rgba(color.b, color.g, color.r, color.a)
+                tiny_skia::Color::from_rgba(color.r, color.g, color.b, color.a)
                     .expect("Create color"),
             ),
             Style::Gradient(gradient) => match gradient {
@@ -424,9 +424,9 @@ pub fn into_paint(style: Style) -> tiny_skia::Paint<'static> {
                             tiny_skia::GradientStop::new(
                                 stop.offset,
                                 tiny_skia::Color::from_rgba(
-                                    stop.color.b,
-                                    stop.color.g,
                                     stop.color.r,
+                                    stop.color.g,
+                                    stop.color.b,
                                     stop.color.a,
                                 )
                                 .expect("Create color"),
