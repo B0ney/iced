@@ -94,7 +94,7 @@ impl Cache {
                 let [r, g, b, a] = pixel.0;
 
                 buffer[i] = bytemuck::cast(
-                    tiny_skia::ColorU8::from_rgba(b, g, r, a).premultiply(),
+                    tiny_skia::ColorU8::from_rgba(r, g, b, a).premultiply(),
                 );
             }
 

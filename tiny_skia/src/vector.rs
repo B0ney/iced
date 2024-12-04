@@ -177,9 +177,9 @@ impl Cache {
                 {
                     *pixel = bytemuck::cast(
                         tiny_skia::ColorU8::from_rgba(
-                            b,
-                            g,
                             r,
+                            g,
+                            b,
                             (*pixel >> 24) as u8,
                         )
                         .premultiply(),
@@ -187,13 +187,13 @@ impl Cache {
                 }
             } else {
                 // Swap R and B channels for `softbuffer` presentation
-                for pixel in
-                    bytemuck::cast_slice_mut::<u8, u32>(image.data_mut())
-                {
-                    *pixel = *pixel & 0xFF00_FF00
-                        | ((0x0000_00FF & *pixel) << 16)
-                        | ((0x00FF_0000 & *pixel) >> 16);
-                }
+                // for pixel in
+                //     bytemuck::cast_slice_mut::<u8, u32>(image.data_mut())
+                // {
+                //     *pixel = *pixel & 0xFF00_FF00
+                //         | ((0x0000_00FF & *pixel) << 16)
+                //         | ((0x00FF_0000 & *pixel) >> 16);
+                // }
             }
 
             let _ = self.rasters.insert(key, image);

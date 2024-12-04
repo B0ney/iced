@@ -318,9 +318,9 @@ impl GlyphCache {
                         for _x in 0..image.placement.width {
                             buffer[i] = bytemuck::cast(
                                 tiny_skia::ColorU8::from_rgba(
-                                    b,
-                                    g,
                                     r,
+                                    g,
+                                    b,
                                     image.data[i],
                                 )
                                 .premultiply(),
@@ -338,9 +338,9 @@ impl GlyphCache {
                             // TODO: Blend alpha
                             buffer[i >> 2] = bytemuck::cast(
                                 tiny_skia::ColorU8::from_rgba(
-                                    image.data[i + 2],
-                                    image.data[i + 1],
                                     image.data[i],
+                                    image.data[i + 1],
+                                    image.data[i + 2],
                                     image.data[i + 3],
                                 )
                                 .premultiply(),
