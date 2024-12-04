@@ -1,5 +1,5 @@
 //! Write your own renderer.
-#[cfg(debug_assertions)]
+// #[cfg(debug_assertions)]
 mod null;
 
 use crate::{

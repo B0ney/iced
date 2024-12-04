@@ -175,7 +175,7 @@ pub trait Cached: Sized {
     fn cache(self, group: Group, previous: Option<Self::Cache>) -> Self::Cache;
 }
 
-#[cfg(debug_assertions)]
+// #[cfg(debug_assertions)]
 impl Cached for () {
     type Cache = ();
 

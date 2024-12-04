@@ -37,7 +37,7 @@ pub trait Renderer: core::Renderer {
     fn draw_geometry(&mut self, geometry: Self::Geometry);
 }
 
-#[cfg(debug_assertions)]
+// #[cfg(debug_assertions)]
 impl Renderer for () {
     type Geometry = ();
     type Frame = ();
