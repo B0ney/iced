@@ -43,8 +43,6 @@ highlighter = ["iced_highlighter", "iced_widget/highlighter"]
 advanced = ["iced_core/advanced", "iced_widget/advanced"]
 # Enables embedding Fira Sans as the default font on Wasm builds
 fira-sans = ["iced_renderer/fira-sans"]
-# Enables auto-detecting light/dark mode for the built-in theme
-auto-detect-theme = ["iced_core/auto-detect-theme"]
 
 [dependencies]
 iced_core.workspace = true
@@ -106,7 +104,6 @@ bitflags = "2.0"
 bytemuck = { version = "1.0", features = ["derive"] }
 bytes = "1.6"
 cosmic-text = "0.12"
-dark-light = "1.0"
 glam = "0.25"
 glyphon = { package = "iced_glyphon", version = "0.6" } # Temporary `glyphon` fork
 half = "2.2"

@@ -1,7 +1,8 @@
 //! Define the colors of a theme.
-use crate::{color, Color};
 
-use once_cell::sync::Lazy;
+type Lazy<T> = std::sync::LazyLock<T>;
+
+use crate::{color, Color};
 use palette::color_difference::Wcag21RelativeContrast;
 use palette::rgb::Rgb;
 use palette::{FromColor, Hsl, Mix};
