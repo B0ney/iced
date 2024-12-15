@@ -60,7 +60,6 @@ use crate::core::{
     Background, Border, Color, Element, Layout, Length, Padding, Pixels, Point,
     Rectangle, Shell, Size, Theme, Vector, Widget,
 };
-use crate::runtime::task::{self, Task};
 use crate::runtime::Action;
 
 /// A field that can be filled with text.
@@ -1278,42 +1277,42 @@ impl From<String> for Id {
     }
 }
 
-/// Produces a [`Task`] that focuses the [`TextInput`] with the given [`Id`].
-pub fn focus<T>(id: impl Into<Id>) -> Task<T> {
-    task::effect(Action::widget(operation::focusable::focus(id.into().0)))
-}
+// /// Produces a [`Task`] that focuses the [`TextInput`] with the given [`Id`].
+// pub fn focus<T>(id: impl Into<Id>) -> Task<T> {
+//     task::effect(Action::widget(operation::focusable::focus(id.into().0)))
+// }
 
-/// Produces a [`Task`] that moves the cursor of the [`TextInput`] with the given [`Id`] to the
-/// end.
-pub fn move_cursor_to_end<T>(id: impl Into<Id>) -> Task<T> {
-    task::effect(Action::widget(operation::text_input::move_cursor_to_end(
-        id.into().0,
-    )))
-}
+// /// Produces a [`Task`] that moves the cursor of the [`TextInput`] with the given [`Id`] to the
+// /// end.
+// pub fn move_cursor_to_end<T>(id: impl Into<Id>) -> Task<T> {
+//     task::effect(Action::widget(operation::text_input::move_cursor_to_end(
+//         id.into().0,
+//     )))
+// }
 
-/// Produces a [`Task`] that moves the cursor of the [`TextInput`] with the given [`Id`] to the
-/// front.
-pub fn move_cursor_to_front<T>(id: impl Into<Id>) -> Task<T> {
-    task::effect(Action::widget(operation::text_input::move_cursor_to_front(
-        id.into().0,
-    )))
-}
+// /// Produces a [`Task`] that moves the cursor of the [`TextInput`] with the given [`Id`] to the
+// /// front.
+// pub fn move_cursor_to_front<T>(id: impl Into<Id>) -> Task<T> {
+//     task::effect(Action::widget(operation::text_input::move_cursor_to_front(
+//         id.into().0,
+//     )))
+// }
 
-/// Produces a [`Task`] that moves the cursor of the [`TextInput`] with the given [`Id`] to the
-/// provided position.
-pub fn move_cursor_to<T>(id: impl Into<Id>, position: usize) -> Task<T> {
-    task::effect(Action::widget(operation::text_input::move_cursor_to(
-        id.into().0,
-        position,
-    )))
-}
+// /// Produces a [`Task`] that moves the cursor of the [`TextInput`] with the given [`Id`] to the
+// /// provided position.
+// pub fn move_cursor_to<T>(id: impl Into<Id>, position: usize) -> Task<T> {
+//     task::effect(Action::widget(operation::text_input::move_cursor_to(
+//         id.into().0,
+//         position,
+//     )))
+// }
 
-/// Produces a [`Task`] that selects all the content of the [`TextInput`] with the given [`Id`].
-pub fn select_all<T>(id: impl Into<Id>) -> Task<T> {
-    task::effect(Action::widget(operation::text_input::select_all(
-        id.into().0,
-    )))
-}
+// /// Produces a [`Task`] that selects all the content of the [`TextInput`] with the given [`Id`].
+// pub fn select_all<T>(id: impl Into<Id>) -> Task<T> {
+//     task::effect(Action::widget(operation::text_input::select_all(
+//         id.into().0,
+//     )))
+// }
 
 /// The state of a [`TextInput`].
 #[derive(Debug, Default, Clone)]

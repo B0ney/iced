@@ -1,6 +1,5 @@
 #![allow(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
-pub mod window;
 
 mod engine;
 mod layer;
@@ -32,7 +31,6 @@ use crate::core::{
     Background, Color, Font, Pixels, Point, Rectangle, Transformation,
 };
 use crate::engine::Engine;
-use crate::graphics::compositor;
 use crate::graphics::text::{Editor, Paragraph};
 use crate::graphics::Viewport;
 
@@ -400,8 +398,4 @@ impl core::svg::Renderer for Renderer {
         let (layer, transformation) = self.layers.current_mut();
         layer.draw_svg(svg, bounds, transformation);
     }
-}
-
-impl compositor::Default for Renderer {
-    type Compositor = window::Compositor;
 }

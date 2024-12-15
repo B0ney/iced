@@ -37,7 +37,6 @@ use crate::core::{
     self, Background, Clipboard, Color, Element, Layout, Length, Padding,
     Pixels, Point, Rectangle, Shell, Size, Theme, Vector, Widget,
 };
-use crate::runtime::task::{self, Task};
 use crate::runtime::Action;
 
 pub use operation::scrollable::{AbsoluteOffset, RelativeOffset};
@@ -1187,27 +1186,27 @@ impl From<Id> for widget::Id {
     }
 }
 
-/// Produces a [`Task`] that snaps the [`Scrollable`] with the given [`Id`]
-/// to the provided [`RelativeOffset`].
-pub fn snap_to<T>(id: Id, offset: RelativeOffset) -> Task<T> {
-    task::effect(Action::widget(operation::scrollable::snap_to(id.0, offset)))
-}
+// /// Produces a [`Task`] that snaps the [`Scrollable`] with the given [`Id`]
+// /// to the provided [`RelativeOffset`].
+// pub fn snap_to<T>(id: Id, offset: RelativeOffset) -> Task<T> {
+//     task::effect(Action::widget(operation::scrollable::snap_to(id.0, offset)))
+// }
 
-/// Produces a [`Task`] that scrolls the [`Scrollable`] with the given [`Id`]
-/// to the provided [`AbsoluteOffset`].
-pub fn scroll_to<T>(id: Id, offset: AbsoluteOffset) -> Task<T> {
-    task::effect(Action::widget(operation::scrollable::scroll_to(
-        id.0, offset,
-    )))
-}
+// /// Produces a [`Task`] that scrolls the [`Scrollable`] with the given [`Id`]
+// /// to the provided [`AbsoluteOffset`].
+// pub fn scroll_to<T>(id: Id, offset: AbsoluteOffset) -> Task<T> {
+//     task::effect(Action::widget(operation::scrollable::scroll_to(
+//         id.0, offset,
+//     )))
+// }
 
-/// Produces a [`Task`] that scrolls the [`Scrollable`] with the given [`Id`]
-/// by the provided [`AbsoluteOffset`].
-pub fn scroll_by<T>(id: Id, offset: AbsoluteOffset) -> Task<T> {
-    task::effect(Action::widget(operation::scrollable::scroll_by(
-        id.0, offset,
-    )))
-}
+// /// Produces a [`Task`] that scrolls the [`Scrollable`] with the given [`Id`]
+// /// by the provided [`AbsoluteOffset`].
+// pub fn scroll_by<T>(id: Id, offset: AbsoluteOffset) -> Task<T> {
+//     task::effect(Action::widget(operation::scrollable::scroll_by(
+//         id.0, offset,
+//     )))
+// }
 
 fn notify_scroll<Message>(
     state: &mut State,

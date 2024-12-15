@@ -14,7 +14,6 @@ mod viewport;
 
 pub mod cache;
 pub mod color;
-pub mod compositor;
 pub mod damage;
 pub mod error;
 pub mod gradient;
@@ -28,7 +27,6 @@ pub mod geometry;
 
 pub use antialiasing::Antialiasing;
 pub use cache::Cache;
-pub use compositor::Compositor;
 pub use error::Error;
 pub use gradient::Gradient;
 pub use image::Image;
@@ -39,4 +37,3 @@ pub use text::Text;
 pub use viewport::Viewport;
 
 pub use iced_core as core;
-pub use iced_futures as futures;

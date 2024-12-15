@@ -26,7 +26,6 @@ fira-sans = []
 
 [dependencies]
 iced_core.workspace = true
-iced_futures.workspace = true
 
 bitflags.workspace = true
 bytemuck.workspace = true

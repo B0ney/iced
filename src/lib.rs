@@ -471,26 +471,13 @@
 )]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![cfg_attr(docsrs, feature(doc_cfg))]
+use iced_core as core;
+
 use iced_widget::graphics;
 use iced_widget::renderer;
-use iced_winit as shell;
-use iced_winit::core;
-use iced_winit::runtime;
-
-pub use iced_futures::futures;
-pub use iced_futures::stream;
 
 #[cfg(feature = "highlighter")]
 pub use iced_highlighter as highlighter;
-
-mod error;
-mod program;
-
-pub mod application;
-pub mod daemon;
-pub mod settings;
-pub mod time;
-pub mod window;
 
 #[cfg(feature = "advanced")]
 pub mod advanced;
@@ -506,60 +493,26 @@ pub use crate::core::{
     Length, Padding, Pixels, Point, Radians, Rectangle, Rotation, Shadow, Size,
     Theme, Transformation, Vector,
 };
-pub use crate::runtime::exit;
-pub use iced_futures::Subscription;
 
 pub use alignment::Horizontal::{Left, Right};
 pub use alignment::Vertical::{Bottom, Top};
 pub use Alignment::Center;
 pub use Length::{Fill, FillPortion, Shrink};
 
-pub mod task {
-    //! Create runtime tasks.
-    pub use crate::runtime::task::{Handle, Task};
-}
-
-pub mod clipboard {
-    //! Access the clipboard.
-    pub use crate::runtime::clipboard::{
-        read, read_primary, write, write_primary,
-    };
-}
-
-pub mod executor {
-    //! Choose your preferred executor to power your application.
-    pub use iced_futures::Executor;
-
-    /// A default cross-platform executor.
-    ///
-    /// - On native platforms, it will use:
-    ///   - `iced_futures::backend::native::tokio` when the `tokio` feature is enabled.
-    ///   - `iced_futures::backend::native::async-std` when the `async-std` feature is
-    ///     enabled.
-    ///   - `iced_futures::backend::native::smol` when the `smol` feature is enabled.
-    ///   - `iced_futures::backend::native::thread_pool` otherwise.
-    ///
-    /// - On Wasm, it will use `iced_futures::backend::wasm::wasm_bindgen`.
-    pub type Default = iced_futures::backend::default::Executor;
-}
-
 pub mod font {
     //! Load and use fonts.
     pub use crate::core::font::*;
-    pub use crate::runtime::font::*;
 }
 
 pub mod event {
     //! Handle events of a user interface.
     pub use crate::core::event::{Event, Status};
-    pub use iced_futures::event::{listen, listen_raw, listen_with};
 }
 
 pub mod keyboard {
     //! Listen and react to keyboard events.
     pub use crate::core::keyboard::key;
     pub use crate::core::keyboard::{Event, Key, Location, Modifiers};
-    pub use iced_futures::keyboard::{on_key_press, on_key_release};
 }
 
 pub mod mouse {
@@ -567,13 +520,6 @@ pub mod mouse {
     pub use crate::core::mouse::{
         Button, Cursor, Event, Interaction, ScrollDelta,
     };
-}
-
-#[cfg(feature = "system")]
-pub mod system {
-    //! Retrieve system information.
-    pub use crate::runtime::system::Information;
-    pub use crate::shell::system::*;
 }
 
 pub mod overlay {
@@ -594,11 +540,6 @@ pub mod overlay {
     pub use iced_widget::overlay::*;
 }
 
-pub mod touch {
-    //! Listen and react to touch events.
-    pub use crate::core::touch::{Event, Finger};
-}
-
 #[allow(hidden_glob_reexports)]
 pub mod widget {
     //! Use the built-in widgets or create your own.
@@ -613,20 +554,8 @@ pub mod widget {
     mod runtime {}
 }
 
-pub use application::Application;
-pub use daemon::Daemon;
-pub use error::Error;
 pub use event::Event;
-pub use executor::Executor;
-pub use font::Font;
 pub use renderer::Renderer;
-pub use settings::Settings;
-pub use task::Task;
-
-#[doc(inline)]
-pub use application::application;
-#[doc(inline)]
-pub use daemon::daemon;
 
 /// A generic widget.
 ///
@@ -637,52 +566,3 @@ pub type Element<
     Theme = crate::Theme,
     Renderer = crate::Renderer,
 > = crate::core::Element<'a, Message, Theme, Renderer>;
-
-/// The result of running an iced program.
-pub type Result = std::result::Result<(), Error>;
-
-/// Runs a basic iced application with default [`Settings`] given its title,
-/// update, and view logic.
-///
-/// This is equivalent to chaining [`application()`] with [`Application::run`].
-///
-/// # Example
-/// ```no_run
-/// use iced::widget::{button, column, text, Column};
-///
-/// pub fn main() -> iced::Result {
-///     iced::run("A counter", update, view)
-/// }
-///
-/// #[derive(Debug, Clone)]
-/// enum Message {
-///     Increment,
-/// }
-///
-/// fn update(value: &mut u64, message: Message) {
-///     match message {
-///         Message::Increment => *value += 1,
-///     }
-/// }
-///
-/// fn view(value: &u64) -> Column<Message> {
-///     column![
-///         text(value),
-///         button("+").on_press(Message::Increment),
-///     ]
-/// }
-/// ```
-pub fn run<State, Message, Theme, Renderer>(
-    title: impl application::Title<State> + 'static,
-    update: impl application::Update<State, Message> + 'static,
-    view: impl for<'a> application::View<'a, State, Message, Theme, Renderer>
-        + 'static,
-) -> Result
-where
-    State: Default + 'static,
-    Message: std::fmt::Debug + Send + 'static,
-    Theme: Default + program::DefaultStyle + 'static,
-    Renderer: program::Renderer + 'static,
-{
-    application(title, update, view).run()
-}
