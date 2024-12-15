@@ -39,7 +39,6 @@ markdown = ["iced_widget/markdown"]
 lazy = ["iced_widget/lazy"]
 # Enables the syntax `highlighter` module
 highlighter = ["iced_highlighter", "iced_widget/highlighter"]
-
 # Enables the advanced module
 advanced = ["iced_core/advanced", "iced_widget/advanced"]
 # Enables embedding Fira Sans as the default font on Wasm builds

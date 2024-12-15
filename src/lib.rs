@@ -473,7 +473,6 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 use iced_core as core;
 
-use iced_widget::graphics;
 use iced_widget::renderer;
 
 #[cfg(feature = "highlighter")]

@@ -37,7 +37,6 @@ use crate::core::{
     self, Background, Clipboard, Color, Element, Layout, Length, Padding,
     Pixels, Point, Rectangle, Shell, Size, Theme, Vector, Widget,
 };
-use crate::runtime::Action;
 
 pub use operation::scrollable::{AbsoluteOffset, RelativeOffset};
 

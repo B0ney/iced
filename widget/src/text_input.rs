@@ -60,7 +60,6 @@ use crate::core::{
     Background, Border, Color, Element, Layout, Length, Padding, Pixels, Point,
     Rectangle, Shell, Size, Theme, Vector, Widget,
 };
-use crate::runtime::Action;
 
 /// A field that can be filled with text.
 ///
