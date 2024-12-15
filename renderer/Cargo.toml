@@ -21,8 +21,6 @@ fira-sans = ["iced_graphics/fira-sans"]
 
 [dependencies]
 iced_graphics.workspace = true
-
 iced_tiny_skia.workspace = true
-
 log.workspace = true
 thiserror.workspace = true

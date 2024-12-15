@@ -103,16 +103,13 @@ iced_runtime = { version = "0.13", path = "runtime" }
 iced_tiny_skia = { version = "0.13", path = "tiny_skia" }
 iced_widget = { version = "0.13", path = "widget" }
 
-async-std = "1.0"
 bitflags = "2.0"
 bytemuck = { version = "1.0", features = ["derive"] }
 bytes = "1.6"
 cosmic-text = "0.12"
 dark-light = "1.0"
-futures = "0.3"
 glam = "0.25"
 glyphon = { package = "iced_glyphon", version = "0.6" } # Temporary `glyphon` fork
-guillotiere = "0.6"
 half = "2.2"
 image = { version = "0.24", default-features = false }
 kamadak-exif = "0.5"
@@ -126,26 +123,16 @@ ouroboros = "0.18"
 palette = "0.7"
 pulldown-cmark = "0.11"
 qrcode = { version = "0.13", default-features = false }
-raw-window-handle = "0.6"
 resvg = "0.42"
 rustc-hash = "2.0"
-smol = "1.0"
 smol_str = "0.2"
-softbuffer = "0.4"
 syntect = "5.1"
-sysinfo = "0.30"
 thiserror = "1.0"
 tiny-skia = "0.11"
-tokio = "1.0"
 tracing = "0.1"
 unicode-segmentation = "1.0"
 url = "2.5"
-wasm-bindgen-futures = "0.4"
-wasm-timer = "0.2"
-web-sys = "0.3.69"
 web-time = "1.1"
-winapi = "0.3"
-window_clipboard = "0.4.1"
 
 [workspace.lints.rust]
 rust_2018_idioms = { level = "forbid", priority = -1 }
