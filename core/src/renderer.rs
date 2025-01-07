@@ -76,6 +76,24 @@ pub struct Quad {
     pub shadow: Shadow,
 }
 
+impl Quad {
+    /// Calculates bounds area with [`Shadow`] expandation.
+    pub fn bounds_with_shadow(&self) -> Rectangle {
+        let shadow = self.shadow;
+
+        if shadow.color.a > 0.0 {
+            Rectangle {
+                x: self.bounds.x + shadow.offset.x - shadow.blur_radius,
+                y: self.bounds.y + shadow.offset.y - shadow.blur_radius,
+                width: self.bounds.width + shadow.blur_radius * 2.0,
+                height: self.bounds.height + shadow.blur_radius * 2.0,
+            }
+        } else {
+            self.bounds
+        }
+    }
+}
+
 impl Default for Quad {
     fn default() -> Self {
         Self {
