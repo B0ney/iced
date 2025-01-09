@@ -9,6 +9,8 @@ use bytemuck::{Pod, Zeroable};
 use half::f16;
 use std::cmp::Ordering;
 
+const MAX_STOPS: usize = 16;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 /// A fill which linearly interpolates colors along a direction.
 ///
@@ -44,7 +46,7 @@ pub struct Linear {
     pub end: Point,
 
     /// [`ColorStop`]s along the linear gradient direction.
-    pub stops: [Option<ColorStop>; 8],
+    pub stops: [Option<ColorStop>; MAX_STOPS],
 }
 
 impl Linear {
@@ -53,7 +55,7 @@ impl Linear {
         Self {
             start,
             end,
-            stops: [None; 8],
+            stops: [None; MAX_STOPS],
         }
     }
 
@@ -70,7 +72,7 @@ impl Linear {
                     Some(stop) => stop.offset.partial_cmp(&offset).unwrap(),
                 });
 
-            if index < 8 {
+            if index < MAX_STOPS {
                 self.stops[index] = Some(ColorStop { offset, color });
             }
         } else {
@@ -96,8 +98,8 @@ impl Linear {
 
     /// Packs the [`Gradient`] for use in shader code.
     pub fn pack(&self) -> Packed {
-        let mut colors = [[0u32; 2]; 8];
-        let mut offsets = [f16::from(0u8); 8];
+        let mut colors = [[0u32; 2]; MAX_STOPS];
+        let mut offsets = [f16::from(0u8); MAX_STOPS];
 
         for (index, stop) in self.stops.iter().enumerate() {
             let [r, g, b, a] =
@@ -118,6 +120,11 @@ impl Linear {
             pack_f16s([offsets[2], offsets[3]]),
             pack_f16s([offsets[4], offsets[5]]),
             pack_f16s([offsets[6], offsets[7]]),
+
+            pack_f16s([offsets[8], offsets[9]]),
+            pack_f16s([offsets[10], offsets[11]]),
+            pack_f16s([offsets[12], offsets[13]]),
+            pack_f16s([offsets[14], offsets[15]]),
         ];
 
         let direction = [self.start.x, self.start.y, self.end.x, self.end.y];
@@ -135,9 +142,9 @@ impl Linear {
 #[repr(C)]
 pub struct Packed {
     // 8 colors, each channel = 16 bit float, 2 colors packed into 1 u32
-    colors: [[u32; 2]; 8],
+    colors: [[u32; 2]; MAX_STOPS],
     // 8 offsets, 8x 16 bit floats packed into 4 u32s
-    offsets: [u32; 4],
+    offsets: [u32; MAX_STOPS / 2],
     direction: [f32; 4],
 }
 
@@ -145,8 +152,8 @@ pub struct Packed {
 pub fn pack(gradient: &core::Gradient, bounds: Rectangle) -> Packed {
     match gradient {
         core::Gradient::Linear(linear) => {
-            let mut colors = [[0u32; 2]; 8];
-            let mut offsets = [f16::from(0u8); 8];
+            let mut colors = [[0u32; 2]; MAX_STOPS];
+            let mut offsets = [f16::from(0u8); MAX_STOPS];
 
             for (index, stop) in linear.stops.iter().enumerate() {
                 let [r, g, b, a] =
@@ -167,6 +174,11 @@ pub fn pack(gradient: &core::Gradient, bounds: Rectangle) -> Packed {
                 pack_f16s([offsets[2], offsets[3]]),
                 pack_f16s([offsets[4], offsets[5]]),
                 pack_f16s([offsets[6], offsets[7]]),
+
+                pack_f16s([offsets[8], offsets[9]]),
+                pack_f16s([offsets[10], offsets[11]]),
+                pack_f16s([offsets[12], offsets[13]]),
+                pack_f16s([offsets[14], offsets[15]]),
             ];
 
             let (start, end) = linear.angle.to_distance(&bounds);

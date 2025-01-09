@@ -3,6 +3,8 @@ use crate::{Color, Radians};
 
 use std::cmp::Ordering;
 
+const MAX_STOPS: usize = 16;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 /// A fill which transitions colors progressively along a direction, either linearly, radially (TBD),
 /// or conically (TBD).
@@ -48,7 +50,7 @@ pub struct Linear {
     /// How the [`Gradient`] is angled within its bounds.
     pub angle: Radians,
     /// [`ColorStop`]s along the linear gradient path.
-    pub stops: [Option<ColorStop>; 8],
+    pub stops: [Option<ColorStop>; MAX_STOPS],
 }
 
 impl Linear {
@@ -56,7 +58,7 @@ impl Linear {
     pub fn new(angle: impl Into<Radians>) -> Self {
         Self {
             angle: angle.into(),
-            stops: [None; 8],
+            stops: [None; MAX_STOPS],
         }
     }
 
