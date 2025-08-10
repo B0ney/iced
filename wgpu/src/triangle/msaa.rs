@@ -1,5 +1,5 @@
+use crate::Antialiasing;
 use crate::core::{Size, Transformation};
-use crate::graphics;
 
 use std::num::NonZeroU64;
 use std::sync::{Arc, RwLock};
@@ -19,7 +19,7 @@ impl Pipeline {
     pub fn new(
         device: &wgpu::Device,
         format: wgpu::TextureFormat,
-        antialiasing: graphics::Antialiasing,
+        antialiasing: Antialiasing,
     ) -> Pipeline {
         let sampler =
             device.create_sampler(&wgpu::SamplerDescriptor::default());
