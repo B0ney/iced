@@ -1,11 +1,12 @@
 //! A compositor is responsible for initializing a renderer and managing window
 //! surfaces.
+use crate::Backend;
 use crate::core;
 use crate::core::Color;
 use crate::core::font;
 use crate::core::renderer;
 use crate::futures::{MaybeSend, MaybeSync};
-use crate::{Antialiasing, Error, Shell, Viewport};
+use crate::{Error, Shell, Viewport};
 
 use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
 use thiserror::Error;
@@ -22,24 +23,10 @@ pub trait Compositor: Sized {
 
     /// Creates a new [`Compositor`].
     fn new(
-        settings: Settings,
-        display: impl Display + Clone,
-        compatible_window: impl Window + Clone,
-        shell: Shell,
-    ) -> impl Future<Output = Result<Self, Error>> {
-        Self::with_backend(settings, display, compatible_window, shell, None)
-    }
-
-    /// Creates a new [`Compositor`] with a backend preference.
-    ///
-    /// If the backend does not match the preference, it will return
-    /// [`Error::GraphicsAdapterNotFound`].
-    fn with_backend(
-        settings: Settings,
-        display: impl Display + Clone,
-        compatible_window: impl Window + Clone,
-        shell: Shell,
-        backend: Option<&str>,
+        _settings: &Settings,
+        _display: impl Display + Clone,
+        _compatible_window: impl Window + Clone,
+        _shell: Shell,
     ) -> impl Future<Output = Result<Self, Error>>;
 
     /// Creates a [`Self::Renderer`] for the [`Compositor`].
@@ -113,12 +100,16 @@ pub trait Compositor: Sized {
 }
 
 /// The settings of a [`Compositor`].
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Settings {
-    /// The antialiasing strategy that will be used for triangle primitives.
+    /// It defaults to [`Backend::Best`].
+    pub backend: Backend,
+
+    /// Enabling it can produce a smoother result in some widgets, like the
+    /// `Canvas`, at a performance cost.
     ///
-    /// By default, it is `None`.
-    pub antialiasing: Option<Antialiasing>,
+    /// By default, it is disabled.
+    pub antialiasing: bool,
 
     /// Whether or not to synchronize frames.
     ///
@@ -129,8 +120,9 @@ pub struct Settings {
 impl ::core::default::Default for Settings {
     fn default() -> Settings {
         Settings {
-            antialiasing: None,
+            antialiasing: true,
             vsync: true,
+            backend: Backend::Best,
         }
     }
 }
@@ -138,8 +130,9 @@ impl ::core::default::Default for Settings {
 impl From<&core::Settings> for Settings {
     fn from(settings: &core::Settings) -> Self {
         Self {
-            antialiasing: settings.antialiasing.then_some(Antialiasing::MSAAx4),
+            antialiasing: settings.antialiasing,
             vsync: settings.vsync,
+            backend: Backend::Best,
         }
     }
 }
@@ -200,12 +193,11 @@ impl Compositor for () {
     type Renderer = ();
     type Surface = ();
 
-    async fn with_backend(
-        _settings: Settings,
+    async fn new(
+        _settings: &Settings,
         _display: impl Display,
         _compatible_window: impl Window + Clone,
         _shell: Shell,
-        _preferred_backend: Option<&str>,
     ) -> Result<Self, Error> {
         Ok(())
     }

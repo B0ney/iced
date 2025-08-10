@@ -1,5 +1,5 @@
-use crate::core::renderer;
-use crate::core::{Color, Rectangle, Size};
+use crate::core::{Color, Rectangle, Size, renderer};
+use crate::graphics::Backend;
 use crate::graphics::compositor::{self, Information};
 use crate::graphics::damage;
 use crate::graphics::error::{self, Error};
@@ -30,21 +30,24 @@ impl crate::graphics::Compositor for Compositor {
     type Renderer = Renderer;
     type Surface = Surface;
 
-    async fn with_backend(
-        _settings: compositor::Settings,
+    async fn new(
+        settings: &compositor::Settings,
         display: impl compositor::Display,
-        _compatible_window: impl compositor::Window,
+        _compatible_window: impl compositor::Window + Clone,
         _shell: Shell,
-        backend: Option<&str>,
     ) -> Result<Self, Error> {
-        match backend {
-            None | Some("tiny-skia") | Some("tiny_skia") => Ok(new(display)),
-            Some(backend) => Err(Error::GraphicsAdapterNotFound {
+        if settings.backend == Backend::Software
+            || settings.backend.matches("tiny-skia")
+            || settings.backend.matches("tiny_skia")
+        {
+            Ok(new(display))
+        } else {
+            Err(Error::GraphicsAdapterNotFound {
                 backend: "tiny-skia",
                 reason: error::Reason::DidNotMatch {
-                    preferred_backend: backend.to_owned(),
+                    preferred_backend: settings.backend.clone(),
                 },
-            }),
+            })
         }
     }
 
@@ -68,9 +71,7 @@ impl crate::graphics::Compositor for Compositor {
             max_age: 0,
         };
 
-        if width > 0 && height > 0 {
-            self.configure_surface(&mut surface, width, height);
-        }
+        self.configure_surface(&mut surface, width, height);
 
         surface
     }

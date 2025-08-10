@@ -473,7 +473,6 @@
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 use iced_widget::graphics;
-use iced_widget::renderer;
 use iced_winit as shell;
 use iced_winit::core;
 use iced_winit::program;
@@ -537,6 +536,7 @@ pub use crate::core::{
 pub use crate::program::Preset;
 pub use crate::program::message;
 pub use crate::runtime::exit;
+pub use crate::runtime::renderer;
 pub use iced_futures::Subscription;
 
 pub use Alignment::Center;
@@ -651,8 +651,8 @@ pub use error::Error;
 pub use event::Event;
 pub use executor::Executor;
 pub use font::Font;
+pub use iced_renderer::Renderer;
 pub use program::Program;
-pub use renderer::Renderer;
 pub use task::Task;
 pub use window::Window;
 

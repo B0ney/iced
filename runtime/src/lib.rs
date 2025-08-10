@@ -13,14 +13,18 @@ pub mod clipboard;
 pub mod font;
 pub mod image;
 pub mod keyboard;
+pub mod renderer;
 pub mod system;
 pub mod task;
 pub mod user_interface;
 pub mod widget;
 pub mod window;
 
+use futures::futures::channel::oneshot;
 pub use iced_core as core;
 pub use iced_futures as futures;
+pub use iced_graphics as graphics;
+use iced_graphics::compositor;
 
 pub use task::Task;
 pub use user_interface::UserInterface;
@@ -34,6 +38,19 @@ use std::fmt;
 pub enum Action<T> {
     /// Output some value.
     Output(T),
+
+    /// Changes the renderer [`Settings`].
+    ///
+    /// [`Settings`]: graphics::Settings
+    ChangeRenderer {
+        /// The renderer [`Settings`].
+        ///
+        /// [`Settings`]: graphics::Settings
+        settings: compositor::Settings,
+
+        /// The channel to send back the load result.
+        channel: oneshot::Sender<Result<(), renderer::Error>>,
+    },
 
     /// Run a widget operation.
     Widget(Box<dyn core::widget::Operation>),
@@ -83,6 +100,9 @@ impl<T> Action<T> {
     fn output<O>(self) -> Result<T, Action<O>> {
         match self {
             Action::Output(output) => Ok(output),
+            Action::ChangeRenderer { settings, channel } => {
+                Err(Action::ChangeRenderer { settings, channel })
+            }
             Action::Widget(operation) => Err(Action::Widget(operation)),
             Action::Clipboard(action) => Err(Action::Clipboard(action)),
             Action::Window(action) => Err(Action::Window(action)),
@@ -104,6 +124,9 @@ where
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Action::Output(output) => write!(f, "Action::Output({output:?})"),
+            Action::ChangeRenderer { settings, .. } => {
+                write!(f, "Action::ChangeRenderer {{ settings: {settings:?} }}")
+            }
             Action::Widget { .. } => {
                 write!(f, "Action::Widget")
             }

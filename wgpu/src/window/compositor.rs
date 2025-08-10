@@ -1,10 +1,13 @@
 //! Connect a window with a renderer.
-use crate::core::Color;
-use crate::core::renderer;
+use iced_graphics::Backend;
+use iced_graphics::backend;
+
+use crate::Antialiasing;
+use crate::core::{Color, renderer};
 use crate::graphics::color;
 use crate::graphics::compositor;
 use crate::graphics::error;
-use crate::graphics::{self, Antialiasing, Shell, Viewport};
+use crate::graphics::{self, Shell, Viewport};
 use crate::{Engine, Renderer};
 
 /// A window graphics backend for iced powered by `wgpu`.
@@ -255,33 +258,41 @@ impl graphics::Compositor for Compositor {
     type Renderer = Renderer;
     type Surface = wgpu::Surface<'static>;
 
-    async fn with_backend(
-        settings: compositor::Settings,
+    async fn new(
+        settings: &compositor::Settings,
         _display: impl compositor::Display,
-        compatible_window: impl compositor::Window,
+        compatible_window: impl compositor::Window + Clone,
         shell: Shell,
-        backend: Option<&str>,
     ) -> Result<Self, graphics::Error> {
-        match backend {
-            None | Some("wgpu") => {
-                let mut settings = Settings::from(settings);
+        if matches!(settings.backend, Backend::Hardware(_)) || settings.backend.matches("wgpu") {
+            let backends = match settings.backend {
+                Backend::Best | Backend::Hardware(backend::API::Best) => wgpu::Backends::from_env(),
+                Backend::Hardware(backend::API::Vulkan) => Some(wgpu::Backends::VULKAN),
+                Backend::Hardware(backend::API::Metal) => Some(wgpu::Backends::METAL),
+                Backend::Hardware(backend::API::DirectX12) => Some(wgpu::Backends::DX12),
+                Backend::Hardware(backend::API::OpenGL) => Some(wgpu::Backends::GL),
+                Backend::Hardware(backend::API::WebGPU) => Some(wgpu::Backends::BROWSER_WEBGPU),
+                _ => None,
+            };
 
-                if let Some(backends) = wgpu::Backends::from_env() {
-                    settings.backends = backends;
-                }
+            let mut settings = Settings::from(settings.clone());
 
-                if let Some(present_mode) = present_mode_from_env() {
-                    settings.present_mode = present_mode;
-                }
-
-                Ok(new(settings, compatible_window, shell).await?)
+            if let Some(backends) = backends {
+                settings.backends = backends;
             }
-            Some(backend) => Err(graphics::Error::GraphicsAdapterNotFound {
+
+            if let Some(present_mode) = present_mode_from_env() {
+                settings.present_mode = present_mode;
+            }
+
+            Ok(new(settings, compatible_window, shell).await?)
+        } else {
+            Err(graphics::Error::GraphicsAdapterNotFound {
                 backend: "wgpu",
                 reason: error::Reason::DidNotMatch {
-                    preferred_backend: backend.to_owned(),
+                    preferred_backend: settings.backend.clone(),
                 },
-            }),
+            })
         }
     }
 
@@ -394,7 +405,7 @@ impl From<compositor::Settings> for Settings {
             } else {
                 wgpu::PresentMode::AutoNoVsync
             },
-            antialiasing: settings.antialiasing,
+            antialiasing: settings.antialiasing.then_some(Antialiasing::MSAAx4),
             ..Settings::default()
         }
     }
