@@ -30,6 +30,7 @@ pub mod window;
 #[cfg(feature = "geometry")]
 pub mod geometry;
 
+mod antialiasing;
 mod buffer;
 mod color;
 mod engine;
@@ -53,6 +54,7 @@ pub use iced_graphics::core;
 
 pub use wgpu;
 
+pub use antialiasing::Antialiasing;
 pub use engine::Engine;
 pub use layer::Layer;
 pub use primitive::Primitive;
@@ -896,6 +898,13 @@ impl graphics::geometry::Renderer for Renderer {
             }
         }
     }
+
+    fn supports_cache(
+        &self,
+        _cache: &<Self::Geometry as iced_graphics::cache::Cached>::Cache,
+    ) -> bool {
+        true
+    }
 }
 
 impl primitive::Renderer for Renderer {
@@ -959,7 +968,7 @@ impl renderer::Headless for Renderer {
             } else {
                 wgpu::TextureFormat::Rgba8Unorm
             },
-            Some(graphics::Antialiasing::MSAAx4),
+            Some(Antialiasing::MSAAx4),
             Shell::headless(),
         );
 

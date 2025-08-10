@@ -1,8 +1,8 @@
-use crate::Antialiasing;
+use crate::backend::Backend;
 use crate::core::{self, Font, Pixels};
 
 /// The settings of a renderer.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Settings {
     /// The default [`Font`] to use.
     pub default_font: Font,
@@ -12,15 +12,19 @@ pub struct Settings {
     /// By default, it will be set to `16.0`.
     pub default_text_size: Pixels,
 
-    /// The antialiasing strategy that will be used for triangle primitives.
-    ///
-    /// By default, it is `None`.
-    pub antialiasing: Option<Antialiasing>,
+    /// It defaults to [`Backend::Best`].
+    pub backend: Backend,
 
     /// Whether or not to synchronize frames.
     ///
     /// By default, it is `true`.
     pub vsync: bool,
+
+    /// Enabling it can produce a smoother result in some widgets, like the
+    /// `Canvas`, at a performance cost.
+    ///
+    /// By default, it is disabled.
+    pub antialiasing: bool,
 }
 
 impl Default for Settings {
@@ -28,8 +32,9 @@ impl Default for Settings {
         Settings {
             default_font: Font::default(),
             default_text_size: Pixels(16.0),
-            antialiasing: None,
             vsync: true,
+            antialiasing: false,
+            backend: Backend::default(),
         }
     }
 }
@@ -47,8 +52,9 @@ impl From<core::Settings> for Settings {
                 settings.default_font
             },
             default_text_size: settings.default_text_size,
-            antialiasing: settings.antialiasing.then_some(Antialiasing::MSAAx4),
             vsync: settings.vsync,
+            antialiasing: settings.antialiasing,
+            backend: Backend::default(),
         }
     }
 }

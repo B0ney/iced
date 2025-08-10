@@ -8,7 +8,6 @@
     html_logo_url = "https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg"
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
-mod antialiasing;
 mod settings;
 mod viewport;
 
@@ -24,10 +23,11 @@ pub mod mesh;
 pub mod shell;
 pub mod text;
 
+pub mod backend;
 #[cfg(feature = "geometry")]
 pub mod geometry;
 
-pub use antialiasing::Antialiasing;
+pub use backend::Backend;
 pub use cache::Cache;
 pub use compositor::Compositor;
 pub use error::Error;

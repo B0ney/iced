@@ -1,4 +1,7 @@
 //! See what can go wrong when creating graphical backends.
+use crate::Backend;
+
+use std::fmt;
 
 /// An error that occurred while creating an application's graphical context.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
@@ -12,7 +15,7 @@ pub enum Error {
     NoAvailablePixelFormat,
 
     /// A suitable graphics adapter or device could not be found.
-    #[error("a suitable graphics adapter or device could not be found")]
+    #[error("a suitable graphics adapter could not be found: {reason}")]
     GraphicsAdapterNotFound {
         /// The name of the backend where the error happened
         backend: &'static str,
@@ -35,8 +38,23 @@ pub enum Reason {
     /// The backend did not match the preference
     DidNotMatch {
         /// The preferred backend
-        preferred_backend: String,
+        preferred_backend: Backend,
     },
     /// The request to create the backend failed
     RequestFailed(String),
+}
+
+impl fmt::Display for Reason {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Reason::DidNotMatch { preferred_backend } => {
+                write!(
+                    f,
+                    "the backend did not match \
+                    the preference: {preferred_backend}"
+                )
+            }
+            Reason::RequestFailed(error) => f.write_str(error),
+        }
+    }
 }

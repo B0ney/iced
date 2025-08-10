@@ -1,3 +1,5 @@
+use iced_graphics::Backend;
+
 use crate::core::{Color, Rectangle, Size};
 use crate::graphics::compositor::{self, Information};
 use crate::graphics::damage;
@@ -28,23 +30,24 @@ impl crate::graphics::Compositor for Compositor {
     type Renderer = Renderer;
     type Surface = Surface;
 
-    async fn with_backend(
-        settings: graphics::Settings,
+    async fn new(
+        settings: &graphics::Settings,
         display: impl compositor::Display,
-        _compatible_window: impl compositor::Window,
+        _compatible_window: impl compositor::Window + Clone,
         _shell: Shell,
-        backend: Option<&str>,
     ) -> Result<Self, Error> {
-        match backend {
-            None | Some("tiny-skia") | Some("tiny_skia") => {
-                Ok(new(settings.into(), display))
-            }
-            Some(backend) => Err(Error::GraphicsAdapterNotFound {
+        if settings.backend == Backend::Software
+            || settings.backend.matches("tiny-skia")
+            || settings.backend.matches("tiny_skia")
+        {
+            Ok(new(settings.into(), display))
+        } else {
+            Err(Error::GraphicsAdapterNotFound {
                 backend: "tiny-skia",
                 reason: error::Reason::DidNotMatch {
-                    preferred_backend: backend.to_owned(),
+                    preferred_backend: settings.backend.clone(),
                 },
-            }),
+            })
         }
     }
 
@@ -69,15 +72,14 @@ impl crate::graphics::Compositor for Compositor {
 
         let mut surface = Surface {
             window,
-            clip_mask: tiny_skia::Mask::new(1, 1).expect("Create clip mask"),
+            clip_mask: tiny_skia::Mask::new(width, height)
+                .expect("Create clip mask"),
             layer_stack: VecDeque::new(),
             background_color: Color::BLACK,
             max_age: 0,
         };
 
-        if width > 0 && height > 0 {
-            self.configure_surface(&mut surface, width, height);
-        }
+        self.configure_surface(&mut surface, width, height);
 
         surface
     }
@@ -187,33 +189,29 @@ pub fn present(
         .unwrap_or_else(|| vec![Rectangle::with_size(viewport.logical_size())]);
 
     if damage.is_empty() {
-        if let Some(last_layers) = last_layers {
-            surface.layer_stack.push_front(last_layers.clone());
-        }
-    } else {
-        surface.layer_stack.push_front(renderer.layers().to_vec());
-        surface.background_color = background_color;
-
-        let damage = damage::group(
-            damage,
-            Rectangle::with_size(viewport.logical_size()),
-        );
-
-        let mut pixels = tiny_skia::PixmapMut::from_bytes(
-            bytemuck::cast_slice_mut(&mut buffer),
-            physical_size.width,
-            physical_size.height,
-        )
-        .expect("Create pixel map");
-
-        renderer.draw(
-            &mut pixels,
-            &mut surface.clip_mask,
-            viewport,
-            &damage,
-            background_color,
-        );
+        return Ok(());
     }
+
+    surface.layer_stack.push_front(renderer.layers().to_vec());
+    surface.background_color = background_color;
+
+    let damage =
+        damage::group(damage, Rectangle::with_size(viewport.logical_size()));
+
+    let mut pixels = tiny_skia::PixmapMut::from_bytes(
+        bytemuck::cast_slice_mut(&mut buffer),
+        physical_size.width,
+        physical_size.height,
+    )
+    .expect("Create pixel map");
+
+    renderer.draw(
+        &mut pixels,
+        &mut surface.clip_mask,
+        viewport,
+        &damage,
+        background_color,
+    );
 
     on_pre_present();
     buffer.present().map_err(|_| compositor::SurfaceError::Lost)

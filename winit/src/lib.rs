@@ -537,6 +537,7 @@ async fn run_instance<P>(
     let mut ui_caches = FxHashMap::default();
     let mut user_interfaces = ManuallyDrop::new(FxHashMap::default());
     let mut clipboard = Clipboard::unconnected();
+    let graphics_settings = &graphics_settings;
 
     #[cfg(all(feature = "linux-theme-detection", target_os = "linux"))]
     let mut system_theme = {
@@ -607,6 +608,8 @@ async fn run_instance<P>(
                             let shell = Shell::new(proxy.clone());
 
                             let mut compositor =
+
+
                                 <P::Renderer as compositor::Default>::Compositor::new(
                                     graphics_settings,
                                     display_handle,
@@ -1838,6 +1841,49 @@ fn run_action<'a, P, C>(
             control_sender
                 .start_send(Control::Exit)
                 .expect("Send control action");
+        }
+        Action::ChangeRenderer { settings, channel } => {
+            let mut new_compositor =
+                if let Some(window) = window_manager.first() {
+                    match crate::futures::futures::executor::block_on(C::new(
+                        &settings,
+                        window.raw.clone(), // TODO
+                        window.raw.clone(),
+                        Shell::headless(), // TODO
+                    )) {
+                        Ok(compositor) => compositor,
+
+                        Err(error) => {
+                            let _ = channel.send(Err(error));
+
+                            return;
+                        }
+                    }
+                } else {
+                    return;
+                };
+
+            window_manager.replace_with(|mut window| {
+                let size = window.state.physical_size();
+
+                drop(window.renderer);
+
+                drop(window.surface);
+
+                window.renderer = new_compositor.create_renderer();
+
+                window.surface = new_compositor.create_surface(
+                    window.raw.clone(),
+                    size.width,
+                    size.height,
+                );
+
+                window
+            });
+
+            *compositor = Some(new_compositor);
+
+            let _ = channel.send(Ok(()));
         }
     }
 }
