@@ -1,4 +1,5 @@
-use crate::graphics::{Antialiasing, Shell};
+use crate::Antialiasing;
+use crate::graphics::Shell;
 use crate::primitive;
 use crate::quad;
 use crate::text;
