@@ -24,8 +24,9 @@ impl Default for Settings {
     }
 }
 
-impl From<graphics::Settings> for Settings {
-    fn from(settings: graphics::Settings) -> Self {
+// TODO if this is necessary
+impl From<&graphics::Settings> for Settings {
+    fn from(settings: &graphics::Settings) -> Self {
         Self {
             default_font: settings.default_font,
             default_text_size: settings.default_text_size,
