@@ -2578,6 +2578,7 @@ dependencies = [
  "iced_core",
  "iced_debug",
  "iced_futures",
+ "iced_graphics",
  "raw-window-handle 0.6.2",
  "sipper",
  "thiserror 1.0.69",
