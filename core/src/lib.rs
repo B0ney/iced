@@ -150,3 +150,22 @@ where
         move |result| self(prefix.clone(), result)
     }
 }
+
+/// A trait extension for booleans.
+///
+/// It enables you to use a bunch of nifty functional programming paradigms
+/// that work well with iced.
+pub trait Boolean<O>
+where
+    Self: Sized,
+    O: Default,
+{
+    /// Call the provided closure on true or return the default value.
+    fn then_or_default(self, then: impl FnOnce() -> O) -> O;
+}
+
+impl<O: Default> Boolean<O> for bool {
+    fn then_or_default(self, then: impl FnOnce() -> O) -> O {
+        if self { then() } else { O::default() }
+    }
+}
