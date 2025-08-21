@@ -66,6 +66,7 @@ pub struct Image<Handle = image::Handle> {
     opacity: f32,
     scale: f32,
     expand: bool,
+    snap: bool,
 }
 
 impl<Handle> Image<Handle> {
@@ -82,6 +83,7 @@ impl<Handle> Image<Handle> {
             opacity: 1.0,
             scale: 1.0,
             expand: false,
+            snap: true,
         }
     }
 
@@ -163,6 +165,15 @@ impl<Handle> Image<Handle> {
     /// The `region` coordinates will be clamped to the image dimensions, if necessary.
     pub fn crop(mut self, region: Rectangle<u32>) -> Self {
         self.crop = Some(region);
+        self
+    }
+
+    /// If set to `true`, the image will be snapped to the pixel grid.
+    ///
+    /// This can avoid graphical glitches, specially when using
+    /// [`FilterMethod::Nearest`].
+    pub fn snap(mut self, snap: bool) -> Self {
+        self.snap = snap;
         self
     }
 }
@@ -309,6 +320,7 @@ pub fn draw<Renderer, Handle>(
     rotation: Rotation,
     opacity: f32,
     scale: f32,
+    snap: bool,
 ) where
     Renderer: image::Renderer<Handle = Handle>,
     Handle: Clone,
@@ -334,6 +346,7 @@ pub fn draw<Renderer, Handle>(
                     rotation,
                     opacity,
                     drawing_bounds,
+                    snap,
                 );
             });
         }
@@ -345,6 +358,7 @@ pub fn draw<Renderer, Handle>(
             rotation,
             opacity,
             drawing_bounds,
+            snap,
         );
     }
 }
@@ -356,6 +370,7 @@ fn render<Renderer, Handle>(
     rotation: Rotation,
     opacity: f32,
     drawing_bounds: Rectangle,
+    snap: bool,
 ) where
     Renderer: image::Renderer<Handle = Handle>,
     Handle: Clone,
@@ -366,7 +381,7 @@ fn render<Renderer, Handle>(
             filter_method,
             rotation: rotation.radians(),
             opacity,
-            snap: true,
+            snap,
         },
         drawing_bounds,
     );
@@ -425,6 +440,7 @@ where
             self.rotation,
             self.opacity,
             self.scale,
+            self.snap,
         );
     }
 }
