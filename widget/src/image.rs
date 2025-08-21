@@ -67,6 +67,7 @@ pub struct Image<Handle = image::Handle> {
     opacity: f32,
     scale: f32,
     expand: bool,
+    snap: bool,
 }
 
 impl<Handle> Image<Handle> {
@@ -84,6 +85,7 @@ impl<Handle> Image<Handle> {
             opacity: 1.0,
             scale: 1.0,
             expand: false,
+            snap: true,
         }
     }
 
@@ -320,6 +322,7 @@ pub fn draw<Renderer, Handle>(
     rotation: Rotation,
     opacity: f32,
     scale: f32,
+    snap: bool,
 ) where
     Renderer: image::Renderer<Handle = Handle>,
     Handle: Clone,
@@ -342,7 +345,7 @@ pub fn draw<Renderer, Handle>(
             filter_method,
             rotation: rotation.radians(),
             opacity,
-            snap: true,
+            snap,
         },
         drawing_bounds,
         bounds,
@@ -402,6 +405,7 @@ where
             self.rotation,
             self.opacity,
             self.scale,
+            self.snap,
         );
     }
 }
