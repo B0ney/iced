@@ -81,7 +81,10 @@ pub fn window_attributes(
 
     #[cfg(target_os = "windows")]
     {
-        use winit::platform::windows::WindowAttributesExtWindows;
+        use window::settings::platform;
+        use winit::platform::windows::{
+            CornerPreference, WindowAttributesExtWindows,
+        };
 
         attributes = attributes
             .with_drag_and_drop(settings.platform_specific.drag_and_drop);
@@ -91,6 +94,21 @@ pub fn window_attributes(
 
         attributes = attributes.with_undecorated_shadow(
             settings.platform_specific.undecorated_shadow,
+        );
+
+        attributes = attributes.with_corner_preference(
+            match settings.platform_specific.corner_preference {
+                platform::CornerPreference::Default => {
+                    CornerPreference::Default
+                }
+                platform::CornerPreference::DoNotRound => {
+                    CornerPreference::DoNotRound
+                }
+                platform::CornerPreference::Round => CornerPreference::Round,
+                platform::CornerPreference::RoundSmall => {
+                    CornerPreference::RoundSmall
+                }
+            },
         );
     }
 
