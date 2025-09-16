@@ -253,6 +253,8 @@ impl State {
                                     linear_instances
                                 }
                             },
+                            image.filter_method
+                                == crate::core::image::FilterMethod::Nearest,
                         );
                     }
                 }
@@ -279,6 +281,7 @@ impl State {
                             true,
                             atlas_entry,
                             nearest_instances,
+                            true,
                         );
                     }
                 }
@@ -531,6 +534,7 @@ fn add_instances(
     snap: bool,
     entry: &atlas::Entry,
     instances: &mut Vec<Instance>,
+    nearest: bool,
 ) {
     let center = [
         image_position[0] + image_size[0] / 2.0,
@@ -548,6 +552,7 @@ fn add_instances(
                 snap,
                 allocation,
                 instances,
+                nearest,
             );
         }
         atlas::Entry::Fragmented { fragments, size } => {
@@ -576,7 +581,7 @@ fn add_instances(
 
                 add_instance(
                     position, center, size, rotation, opacity, snap,
-                    allocation, instances,
+                    allocation, instances, nearest,
                 );
             }
         }
@@ -593,10 +598,15 @@ fn add_instance(
     snap: bool,
     allocation: &atlas::Allocation,
     instances: &mut Vec<Instance>,
+    nearest: bool,
 ) {
     let (x, y) = allocation.position();
     let Size { width, height } = allocation.size();
     let layer = allocation.layer();
+
+    // TODO: explore padding atlas entries
+    let position_offset = if nearest { 0.0 } else { 0.5 };
+    let atlas_size_offset = if nearest { 0.0 } else { -1.0 };
 
     let instance = Instance {
         _position: position,
@@ -605,12 +615,12 @@ fn add_instance(
         _rotation: rotation,
         _opacity: opacity,
         _position_in_atlas: [
-            (x as f32 + 0.5) / atlas::SIZE as f32,
-            (y as f32 + 0.5) / atlas::SIZE as f32,
+            (x as f32 + position_offset) / atlas::SIZE as f32,
+            (y as f32 + position_offset) / atlas::SIZE as f32,
         ],
         _size_in_atlas: [
-            (width as f32 - 1.0) / atlas::SIZE as f32,
-            (height as f32 - 1.0) / atlas::SIZE as f32,
+            (width as f32 + atlas_size_offset) / atlas::SIZE as f32,
+            (height as f32 + atlas_size_offset) / atlas::SIZE as f32,
         ],
         _layer: layer as u32,
         _snap: snap as u32,
