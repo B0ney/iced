@@ -1073,7 +1073,8 @@ where
                     if let Some(scroller) = scrollbar.scroller
                         && scroller.bounds.width > 0.0
                         && scroller.bounds.height > 0.0
-                        && (style.scroller.color != Color::TRANSPARENT
+                        && (style.scroller.background
+                            != Background::Color(Color::TRANSPARENT)
                             || (style.scroller.border.color
                                 != Color::TRANSPARENT
                                 && style.scroller.border.width > 0.0))
@@ -1084,7 +1085,7 @@ where
                                 border: style.scroller.border,
                                 ..renderer::Quad::default()
                             },
-                            style.scroller.color,
+                            style.scroller.background,
                         );
                     }
                 };
@@ -1947,8 +1948,8 @@ pub struct Rail {
 /// The appearance of the scroller of a scrollable.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Scroller {
-    /// The [`Color`] of the scroller.
-    pub color: Color,
+    /// The [`Background`] of the scroller.
+    pub background: Background,
     /// The [`Border`] of the scroller.
     pub border: Border,
 }
@@ -1988,7 +1989,7 @@ pub fn default(theme: &Theme, status: Status) -> Style {
         background: Some(palette.background.weak.color.into()),
         border: border::rounded(2),
         scroller: Scroller {
-            color: palette.background.strongest.color,
+            background: palette.background.strongest.color.into(),
             border: border::rounded(2),
         },
     };
@@ -2007,7 +2008,7 @@ pub fn default(theme: &Theme, status: Status) -> Style {
         } => {
             let hovered_scrollbar = Rail {
                 scroller: Scroller {
-                    color: palette.primary.strong.color,
+                    background: palette.primary.strong.color.into(),
                     ..scrollbar.scroller
                 },
                 ..scrollbar
@@ -2035,7 +2036,7 @@ pub fn default(theme: &Theme, status: Status) -> Style {
         } => {
             let dragged_scrollbar = Rail {
                 scroller: Scroller {
-                    color: palette.primary.base.color,
+                    background: palette.primary.base.color.into(),
                     ..scrollbar.scroller
                 },
                 ..scrollbar
