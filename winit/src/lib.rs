@@ -494,7 +494,6 @@ async fn run_instance<P>(
     let mut ui_caches = FxHashMap::default();
     let mut user_interfaces = ManuallyDrop::new(FxHashMap::default());
     let mut clipboard = Clipboard::new();
-    let graphics_settings = &graphics_settings;
 
     #[cfg(all(feature = "linux-theme-detection", target_os = "linux"))]
     let mut system_theme = {
@@ -558,13 +557,14 @@ async fn run_instance<P>(
                         let display_handle = display_handle.clone();
                         let proxy = proxy.clone();
                         let default_fonts = default_fonts.clone();
+                        let graphics_settings = graphics_settings.clone();
 
                         async move {
                             let shell = Shell::new(proxy.clone());
 
                             let mut compositor =
                                 <P::Renderer as compositor::Default>::Compositor::new(
-                                    graphics_settings,
+                                    &graphics_settings,
                                     display_handle,
                                     window,
                                     shell,
