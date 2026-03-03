@@ -90,7 +90,7 @@ pub enum Action<T> {
 pub mod custom {
     use std::any::Any;
 
-    use crate::core::Maybe;
+    use crate::core::{Either, Maybe};
 
     /// A custom runtime event
     pub struct Action {
@@ -121,13 +121,13 @@ pub mod custom {
             }
         }
 
-        // /// Attempt to take the value of the custom Action.
-        // pub fn take<T: Clone + 'static>(self) -> Result<T, Self> {
-        //     match self.inner.downcast() {
-        //         Ok(value) => Ok(*value),
-        //         Err(inner) => Err(Self { inner }),
-        //     }
-        // }
+        /// Attempt to take the value of the custom Action.
+        pub fn take<T: Clone + 'static>(self) -> Either<T, Self> {
+            match self.inner.downcast() {
+                Ok(value) => Either::Left(*value),
+                Err(inner) => Either::Right(Self { inner }),
+            }
+        }
     }
 }
 

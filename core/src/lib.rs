@@ -162,3 +162,11 @@ pub enum Maybe<T> {
     /// Some Value
     Some(T),
 }
+
+/// Either
+pub enum Either<L, R> {
+    /// The Left Variant
+    Left(L),
+    /// The Right Variant
+    Right(R),
+}
