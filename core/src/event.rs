@@ -31,6 +31,9 @@ pub enum Event {
 
     /// A clipboard event
     Clipboard(clipboard::Event),
+
+    /// A custom event
+    Custom(custom::Event),
 }
 
 /// The status of an [`Event`] after being processed.
@@ -60,6 +63,50 @@ impl Status {
         match self {
             Status::Ignored => b,
             Status::Captured => Status::Captured,
+        }
+    }
+}
+
+/// A custom runtime event
+pub mod custom {
+    use std::{any::Any, sync::Arc};
+
+    use crate::Maybe;
+
+    /// A custom runtime event
+    #[derive(Clone)]
+    pub struct Event {
+        inner: Arc<dyn Any + Send + Sync + 'static>,
+    }
+
+    impl Event {
+        /// Construct a new type erased custom event
+        pub fn new<T: Send + Sync + Clone + PartialEq + 'static>(data: T) -> Self {
+            Self {
+                inner: Arc::new(data),
+            }
+        }
+    }
+
+    impl PartialEq for Event {
+        fn eq(&self, _: &Self) -> bool {
+            false
+        }
+    }
+
+    impl std::fmt::Debug for Event {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.debug_struct("Event").field("inner", &"...").finish()
+        }
+    }
+
+    impl Event {
+        /// Attempt to obtain the value of the custom event.
+        pub fn get<T: Clone + PartialEq + 'static>(&self) -> Maybe<&T> {
+            match self.inner.downcast_ref() {
+                Some(value) => Maybe::Some(value),
+                None => Maybe::None,
+            }
         }
     }
 }

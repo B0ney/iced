@@ -79,6 +79,56 @@ pub enum Action<T> {
     /// This will normally close any application windows and
     /// terminate the runtime loop.
     Exit,
+
+    /// A type-erased custom action.
+    ///
+    /// Useful for custom runtimes.
+    Custom(custom::Action),
+}
+
+/// A custom runtime event
+pub mod custom {
+    use std::any::Any;
+
+    use crate::core::Maybe;
+
+    /// A custom runtime event
+    pub struct Action {
+        inner: Box<dyn Any + Send + 'static>,
+    }
+
+    impl Action {
+        /// Construct a new type erased custom Action
+        pub fn new<T: Clone + Send + 'static>(data: T) -> Self {
+            Self {
+                inner: Box::new(data),
+            }
+        }
+    }
+
+    impl std::fmt::Debug for Action {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.debug_struct("Action").field("inner", &"...").finish()
+        }
+    }
+
+    impl Action {
+        /// Attempt to obtain the value of the custom Action.
+        pub fn get<T: Clone + 'static>(&self) -> Maybe<&T> {
+            match self.inner.downcast_ref() {
+                Some(value) => Maybe::Some(value),
+                None => Maybe::None,
+            }
+        }
+
+        // /// Attempt to take the value of the custom Action.
+        // pub fn take<T: Clone + 'static>(self) -> Result<T, Self> {
+        //     match self.inner.downcast() {
+        //         Ok(value) => Ok(*value),
+        //         Err(inner) => Err(Self { inner }),
+        //     }
+        // }
+    }
 }
 
 impl<T> Action<T> {
@@ -97,6 +147,7 @@ impl<T> Action<T> {
             Action::System(action) => Err(Action::System(action)),
             Action::Image(action) => Err(Action::Image(action)),
             Action::Event { window, event } => Err(Action::Event { window, event }),
+            Action::Custom(action) => Err(Action::Custom(action)),
             Action::Tick => Err(Action::Tick),
             Action::Reload => Err(Action::Reload),
             Action::Exit => Err(Action::Exit),
@@ -130,6 +181,7 @@ where
             Action::Tick => write!(f, "Action::Tick"),
             Action::Reload => write!(f, "Action::Reload"),
             Action::Exit => write!(f, "Action::Exit"),
+            Action::Custom(_) => write!(f, "Action::Custom"),
         }
     }
 }

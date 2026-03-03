@@ -1695,6 +1695,7 @@ fn run_action<'a, P, C>(
                 .start_send(Control::Exit)
                 .expect("Send control action");
         }
+        Action::Custom(_) => { /* ignored */ }
     }
 }
 

@@ -152,3 +152,13 @@ where
         move |result| self(prefix.clone(), result)
     }
 }
+
+#[derive(Default, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+/// Similar to [Option], but without `.unwrap()`
+pub enum Maybe<T> {
+    /// No Value.
+    #[default]
+    None,
+    /// Some Value
+    Some(T),
+}
