@@ -1,7 +1,6 @@
 //! Draw custom primitives.
 use crate::core::{self, Rectangle};
 use crate::graphics::Viewport;
-use crate::graphics::futures::{MaybeSend, MaybeSync};
 
 use rustc_hash::FxHashMap;
 use std::any::{Any, TypeId};
@@ -11,7 +10,7 @@ use std::fmt::Debug;
 pub type Batch = Vec<Instance>;
 
 /// A set of methods which allows a [`Primitive`] to be rendered.
-pub trait Primitive: Debug + MaybeSend + MaybeSync + 'static {
+pub trait Primitive: Debug + 'static {
     /// The shared renderer of this [`Primitive`].
     ///
     /// Normally, this will contain a bunch of [`wgpu`] state; like
@@ -19,7 +18,7 @@ pub trait Primitive: Debug + MaybeSend + MaybeSync + 'static {
     ///
     /// All instances of this [`Primitive`] type will share the same
     /// [`Renderer`].
-    type Pipeline: Pipeline + MaybeSend + MaybeSync;
+    type Pipeline: Pipeline;
 
     /// Processes the [`Primitive`], allowing for GPU buffer allocation.
     fn prepare(
@@ -64,7 +63,7 @@ pub trait Primitive: Debug + MaybeSend + MaybeSync + 'static {
 }
 
 /// The pipeline of a graphics [`Primitive`].
-pub trait Pipeline: Any + MaybeSend + MaybeSync {
+pub trait Pipeline: Any {
     /// Creates the [`Pipeline`] of a [`Primitive`].
     ///
     /// This will only be called once, when the first [`Primitive`] with this kind
@@ -79,7 +78,7 @@ pub trait Pipeline: Any + MaybeSend + MaybeSync {
     fn trim(&mut self) {}
 }
 
-pub(crate) trait Stored: Debug + MaybeSend + MaybeSync + 'static {
+pub(crate) trait Stored: Debug + 'static {
     fn prepare(
         &self,
         storage: &mut Storage,
