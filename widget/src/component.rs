@@ -232,6 +232,7 @@ where
 
         if let Some(event) = publish {
             let _ = internal.events.push(event);
+            shell.request_redraw();
         }
 
         let mut invalidation = shell::Invalidation::None;
